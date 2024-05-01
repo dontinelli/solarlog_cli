@@ -1,0 +1,32 @@
+[project]
+name = "solarlog_cli"
+version = "0.1.0"
+authors = [
+  { name="dontinelli", email="73341522+dontinelli@users.noreply.github.com" },
+]
+description = "Python library to access the Solar-Log"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "aiohttp",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+]
+keywords = ["solar", "sensor", "IoT", "smart home", "hass", "home assistant"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/solarlog_cli"]
+
+[project.urls]
+Repository = "https://github.com/dontinelli/solarlog_cli.git"
+Issues = "https://github.com/dontinelli/solarlog_cli/issues"
+Changelog = "https://github.com/dontinelli/solarlog_cli/blob/master/CHANGELOG.md"
+"Solar-Log homepage" = "https://www.solar-log.com/"
+"API Documentation (inofficial)" = "https://github.com/iobroker-community-adapters/ioBroker.solarlog/blob/master/docs/solarlog_dataobjects.md"
