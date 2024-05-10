@@ -47,6 +47,21 @@ class SolarLogConnector:
             data |= await self.client.get_energy()
             data |= {"devices": await self.update_inverter_data()}
             # print(f"extended data updated: {data}")
+
+        #calculated values (for downward compatibility)
+        if data.get("power_dc") != 0:
+            data |= {"efficiency": data.get("power_ac") / data.get("power_dc")}
+        if data.get("power_ac") != 0:
+            data |= {"usage": data.get("consumption_ac") / data.get("power_ac")}
+            data |= {"power_available": data.get("power_ac") - data.get("consumption_ac")}
+        else:
+            data |= {"usage": 0.0}
+            data |= {"power_available": 0.0}
+        data |= {"alternator_loss": data.get("power_dc") - data.get("power_ac")}
+
+        if data.get("total_power") != 0:
+            data |= {"capacity": - data.get("power_dc") / data.get("total_power")}
+
         return data
 
     async def update_device_list(self) -> dict[int, dict[str, str | bool]]:
