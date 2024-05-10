@@ -1,6 +1,6 @@
 [project]
 name = "solarlog_cli"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   { name="dontinelli", email="73341522+dontinelli@users.noreply.github.com" },
 ]
