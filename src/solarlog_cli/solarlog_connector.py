@@ -45,7 +45,8 @@ class SolarLogConnector:
         # print(f"basic data updated: {data}")
         if self.extended_data:
             data |= await self.client.get_energy()
-            data |= {"devices": await self.update_inverter_data()}
+            if self._device_enabled is not {}:
+                data |= {"devices": await self.update_inverter_data()}
             # print(f"extended data updated: {data}")
 
         #calculated values (for downward compatibility)
@@ -86,7 +87,7 @@ class SolarLogConnector:
         # print(f"power: {raw_data}")
         for key, value in raw_data.items():
             key = int(key)
-            if self._device_enabled[key]:
+            if self._device_enabled.get(key, False):
                 data |= {key: {"current_power": float(value)}}
 
         raw_data = await self.client.get_energy_per_inverter()
