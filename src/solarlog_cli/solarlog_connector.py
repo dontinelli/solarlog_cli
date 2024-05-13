@@ -40,7 +40,7 @@ class SolarLogConnector:
                 "Invalid data returned (can happen after Solarlog restart)."
             )
 
-        data["last_updated"] = data["last_updated"].astimezone(self.timezone)
+        data["last_updated"] = data["last_updated"].replace(tzinfo=self.timezone)
 
         # print(f"basic data updated: {data}")
         if self.extended_data:
