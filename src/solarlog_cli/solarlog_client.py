@@ -64,6 +64,7 @@ class Client:
         content_type = response.headers.get("Content-Type", "")
 
         if response.status != 200:
+            # pylint: disable-next=line-too-long
             msg = f"The server responded with error code {response.status} while fetching data from Solar-Log at {self.host}.\n{url}\n{header}\n{json_payload}"
             text = await response.text()
             raise SolarLogUpdateError(
