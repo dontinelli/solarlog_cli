@@ -45,7 +45,7 @@ class SolarLogConnector:
         # print(f"basic data updated: {data}")
         if self.extended_data:
             data |= await self.client.get_energy()
-            if self._device_enabled is not {} and self._device_enabled is not None:
+            if self._device_enabled != {} and self._device_enabled is not None:
                 data |= {"devices": await self.update_inverter_data()}
             # print(f"extended data updated: {data}")
 
