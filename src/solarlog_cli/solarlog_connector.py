@@ -50,6 +50,7 @@ class SolarLogConnector:
             # print(f"extended data updated: {data}")
 
         #calculated values (for downward compatibility)
+        data |= {"alternator_loss": data.get("power_dc") - data.get("power_ac")}
         if data.get("power_dc") != 0:
             data |= {"efficiency": data.get("power_ac") / data.get("power_dc")}
         if data.get("power_ac") != 0:
@@ -58,10 +59,8 @@ class SolarLogConnector:
         else:
             data |= {"usage": 0.0}
             data |= {"power_available": 0.0}
-        data |= {"alternator_loss": data.get("power_dc") - data.get("power_ac")}
-
         if data.get("total_power") != 0:
-            data |= {"capacity": - data.get("power_dc") / data.get("total_power")}
+            data |= {"capacity": data.get("power_dc") / data.get("total_power")}
 
         return data
 
