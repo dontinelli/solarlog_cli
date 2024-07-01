@@ -1,11 +1,13 @@
 """Connector class to manage access to Solar-Log."""
 
-from datetime import timezone
-from typing import Any
+from datetime import datetime, timezone
+import logging
 from zoneinfo import ZoneInfo
 
 from .solarlog_client import Client
 from .solarlog_exceptions import SolarLogUpdateError
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class SolarLogConnector:
@@ -30,10 +32,10 @@ class SolarLogConnector:
 
         return await self.client.test_connection()
 
-    async def update_data(self) -> dict[str, Any]:
+    async def update_data(self) -> dict[str, int | float | datetime]:
         """Get data from Solar-Log."""
 
-        data: dict = await self.client.get_basic_data()
+        data: dict[str, int | float | datetime] = await self.client.get_basic_data()
 
         if data["last_updated"].year == 1999:
             raise SolarLogUpdateError(
@@ -42,12 +44,12 @@ class SolarLogConnector:
 
         data["last_updated"] = data["last_updated"].replace(tzinfo=self.timezone)
 
-        # print(f"basic data updated: {data}")
+        _LOGGER.debug("Basic data updated: %s",data)
         if self.extended_data:
             data |= await self.client.get_energy()
             if self._device_enabled != {} and self._device_enabled is not None:
                 data |= {"devices": await self.update_inverter_data()}
-            # print(f"extended data updated: {data}")
+            _LOGGER.debug("Extended data updated: %s",data)
 
         #calculated values (for downward compatibility)
         data |= {"alternator_loss": data.get("power_dc") - data.get("power_ac")}
@@ -73,32 +75,28 @@ class SolarLogConnector:
 
         for key, value in self._device_enabled.items():
             device_list[int(key)] |= {"enabled": value}
-        # print(f"device list: {device_list}")
+        _LOGGER.debug("Device list: %s",device_list)
         self._device_list = device_list
 
         return device_list
 
-    async def update_inverter_data(self) -> dict[int, dict[str, Any]]:
+    async def update_inverter_data(self) -> dict[int, dict[str, float]]:
         """Update device specific data."""
-        data: dict[int, dict[str, Any]] = {}
-        # print(self._device_enabled)
+        data: dict[int, dict[str, float]] = {}
         raw_data = await self.client.get_power_per_inverter()
-        # print(f"power: {raw_data}")
         for key, value in raw_data.items():
             key = int(key)
             if self._device_enabled.get(key, False):
                 data |= {key: {"current_power": float(value)}}
 
         raw_data = await self.client.get_energy_per_inverter()
-        # print(f"energy: {raw_data}")
         for key, value in raw_data.items():
-            # print(f"key: {key}, value: {value}, enabled: {self._device_enabled[key]}")
             if self._device_enabled[key]:
                 if key in data:
                     data[key].update({"consumption_year": float(value)})
                 else:
                     data |= {key: {"consumption_year": float(value)}}
-        # print(data)
+        _LOGGER.debug("Inverter data updated: %s",data)
 
         return data
 
@@ -114,7 +112,7 @@ class SolarLogConnector:
 
     def device_name(self, device_id: int) -> str:
         """Get name of Solar-Log attached device."""
-        print(f"list: {self._device_list}, id: {device_id}")
+        _LOGGER.debug("Device list: %s; id: %s",self._device_list, device_id)
         if device_id in self._device_list:
             return self._device_list[device_id]["name"]
 
@@ -125,3 +123,7 @@ class SolarLogConnector:
         if device_id is None:
             return self._device_enabled
         return self._device_enabled[device_id]
+
+    def set_enabled_devices(self, device_enabled: dict[int, bool]) -> None:
+        """Set enabled devices."""
+        self._device_enabled = device_enabled
