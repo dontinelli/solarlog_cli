@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class Client:
     """Client class to access Solar-Log."""
 
-    def __init__(self, host: str):
+    def __init__(self, host: str) -> None:
         self.host: str = host
 
         self.session: ClientSession = ClientSession()
@@ -85,7 +85,7 @@ class Client:
 
         return json_response
 
-    async def get_basic_data(self) -> dict[str, Any]:
+    async def get_basic_data(self) -> dict[str, int | float | datetime]:
         """Get basic data from Solar-Log."""
 
         raw_data: dict = await self.execute_http_request({801: {170: None}})
