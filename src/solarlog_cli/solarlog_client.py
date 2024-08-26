@@ -5,16 +5,14 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime
 import json
-import logging
 from typing import Any
 
 from aiohttp import ClientSession
 
 from .solarlog_exceptions import SolarLogConnectionError, SolarLogUpdateError
+from .solarlog_models import SolarlogData
 
 SOLARLOG_REQUEST_PAYLOAD = {801: {170: None}}
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class Client:
@@ -85,31 +83,31 @@ class Client:
 
         return json_response
 
-    async def get_basic_data(self) -> dict[str, int | float | datetime]:
+    async def get_basic_data(self) -> SolarlogData:
         """Get basic data from Solar-Log."""
 
         raw_data: dict = await self.execute_http_request({801: {170: None}})
         raw_data = raw_data["801"]["170"]
 
-        data = {
-            "last_updated": datetime.strptime(raw_data["100"], "%d.%m.%y %H:%M:%S"),
-            "power_ac": raw_data["101"],
-            "power_dc": raw_data["102"],
-            "voltage_ac": raw_data["103"],
-            "voltage_dc": raw_data["104"],
-            "yield_day": raw_data["105"],
-            "yield_yesterday": raw_data["106"],
-            "yield_month": raw_data["107"],
-            "yield_year": raw_data["108"],
-            "yield_total": raw_data["109"],
-            "consumption_ac": raw_data["110"],
-            "consumption_day": raw_data["111"],
-            "consumption_yesterday": raw_data["112"],
-            "consumption_month": raw_data["113"],
-            "consumption_year": raw_data["114"],
-            "consumption_total": raw_data["115"],
-            "total_power": raw_data["116"],
-        }
+        data = SolarlogData(
+            last_updated = datetime.strptime(raw_data["100"], "%d.%m.%y %H:%M:%S"),
+            power_ac = raw_data["101"],
+            power_dc = raw_data["102"],
+            voltage_ac = raw_data["103"],
+            voltage_dc = raw_data["104"],
+            yield_day = raw_data["105"],
+            yield_yesterday = raw_data["106"],
+            yield_month = raw_data["107"],
+            yield_year = raw_data["108"],
+            yield_total = raw_data["109"],
+            consumption_ac = raw_data["110"],
+            consumption_day = raw_data["111"],
+            consumption_yesterday = raw_data["112"],
+            consumption_month = raw_data["113"],
+            consumption_year = raw_data["114"],
+            consumption_total = raw_data["115"],
+            total_power = raw_data["116"],
+        )
 
         return data
 
@@ -136,16 +134,13 @@ class Client:
 
         return data
 
-    async def get_energy(self) -> dict[str, float]:
+    async def get_energy(self, data: SolarlogData) -> SolarlogData:
         """Get power data from Solar-Log"""
 
         raw_data: dict = await self.execute_http_request({878: None})
 
-        data = {
-            "production_year": raw_data["878"][-1][1],
-            # "consumption_year": raw_data["878"][-1][2], # already in basic data
-            "self_consumption_year": raw_data["878"][-1][3],
-        }
+        data.production_year = raw_data["878"][-1][1]
+        data.self_consumption_year = raw_data["878"][-1][3]
 
         return data
 
