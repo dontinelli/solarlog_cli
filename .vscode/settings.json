@@ -1,6 +1,6 @@
 {
     "python.analysis.extraPaths": [
-        "./src/fyta_cli"
+        "./src/solarlog_cli"
     ],
     "python.analysis.typeCheckingMode": "basic"
 }
