@@ -1,6 +1,6 @@
 """Connector class to manage access to Solar-Log."""
 
-from datetime import datetime, timezone, tzinfo
+from datetime import timezone, tzinfo
 import logging
 from zoneinfo import ZoneInfo
 
@@ -14,17 +14,20 @@ _LOGGER = logging.getLogger(__name__)
 class SolarLogConnector:
     """Connector class to access Solar-Log."""
 
-    def __init__(
+    def __init__( # pylint: disable=dangerous-default-value
         self,
         host: str,
         extended_data: bool = False,
         tz: str = "",
-        device_enabled: dict[int, bool] | None = None,
+        device_enabled: dict[int, bool] = {},
     ):
         self.client = Client(host)
         self.extended_data: bool = extended_data
-        self._device_enabled: dict[int, bool] | None = device_enabled
-        self._device_list: dict[int, dict[str, str | bool]] = {}
+
+        self._device_list: dict[int, InverterData] = {}
+        if device_enabled != {}:
+            for key, value in device_enabled.items():
+                self._device_list |= {key: InverterData(enabled=value)}
 
         self.timezone: tzinfo = timezone.utc if tz == "" else ZoneInfo(tz)
 
@@ -49,7 +52,7 @@ class SolarLogConnector:
         if self.extended_data:
             data = await self.client.get_energy(data)
 
-            if self._device_enabled != {} and self._device_enabled is not None:
+            if self._device_list != {}:
                 data.inverter_data = await self.update_inverter_data()
 
             _LOGGER.debug("Extended data updated: %s",data)
@@ -69,41 +72,38 @@ class SolarLogConnector:
 
         return data
 
-    async def update_device_list(self) -> dict[int, dict[str, str | bool]]:
+    async def update_device_list(self) -> dict[int, InverterData]:
         """Update list of devices."""
-        if not self.extended_data:
+        if not self.extended_data or self._device_list is None:
             return {}
 
-        device_list = await self.client.get_device_list()
+        devices = await self.client.get_device_list()
 
-        for key, value in self._device_enabled.items():
-            device_list[int(key)] |= {"enabled": value}
-        _LOGGER.debug("Device list: %s",device_list)
-        self._device_list = device_list
+        self._device_list = {
+            key: InverterData(name=value,enabled=self.device(key).enabled)
+            for key, value in devices.items()
+        }
+        _LOGGER.debug("Device list: %s",self._device_list)
 
-        return device_list
+        return self._device_list
 
     async def update_inverter_data(self) -> dict[int, InverterData]:
         """Update device specific data."""
-        data: dict[int, InverterData] = {}
+
         raw_data = await self.client.get_power_per_inverter()
         for key, value in raw_data.items():
             key = int(key)
-            if self._device_enabled.get(key, False):
-                data |= {key: InverterData(current_power = float(value))}
+            if self._device_list.get(key,InverterData).enabled:
+                self._device_list[key].current_power = float(value)
 
         raw_data = await self.client.get_energy_per_inverter()
         for key, value in raw_data.items():
-            print (raw_data.items())
-            print (self._device_enabled)
-            if self._device_enabled[key]:
-                if key in data:
-                    data[key].consumption_year = float(value)
-                else:
-                    data |= {key: InverterData(consumption_year = float(value))}
-        _LOGGER.debug("Inverter data updated: %s",data)
+            if self._device_list.get(key,InverterData).enabled:
+                self._device_list[key].consumption_year = float(value)
 
-        return data
+        _LOGGER.debug("Inverter data updated: %s",self._device_list)
+
+        return self._device_list
 
     @property
     def host(self) -> str:
@@ -111,24 +111,32 @@ class SolarLogConnector:
         return self.client.host
 
     @property
-    def device_list(self) -> dict[int, dict[str, str | bool]]:
+    def device_list(self) -> dict[int, InverterData]:
         """List of all devices of Solar-Log."""
         return self._device_list
+
+    def device(self, device_id: int) -> InverterData:
+        """Get device data."""
+        return self._device_list.get(device_id, InverterData())
 
     def device_name(self, device_id: int) -> str:
         """Get name of Solar-Log attached device."""
         _LOGGER.debug("Device list: %s; id: %s",self._device_list, device_id)
-        if device_id in self._device_list:
-            return self._device_list[device_id]["name"]
 
-        return ""
+        return self._device_list.get(device_id, InverterData()).name
 
     def device_enabled(self, device_id: int | None = None) -> bool | dict[int, bool]:
-        """Status of inverter."""
+        """Get if device is enabled (if id is provided) or list of all devices."""
         if device_id is None:
-            return self._device_enabled
-        return self._device_enabled[device_id]
+            print("no device_id")
+            print(self._device_list)
+            return {key: value.enabled for key, value in self._device_list.items()}
+        return self._device_list[device_id].enabled
 
     def set_enabled_devices(self, device_enabled: dict[int, bool]) -> None:
         """Set enabled devices."""
-        self._device_enabled = device_enabled
+        for key, value in device_enabled.items():
+            if self._device_list.get(key) is None:
+                self._device_list |= {key: InverterData(enabled=value)}
+            else:
+                self._device_list[key].enabled = value

@@ -9,6 +9,8 @@ from mashumaro import DataClassDictMixin
 class InverterData():
     """Inverter Data model."""
 
+    name: str = ""
+    enabled: bool = False
     current_power: float | None = None
     consumption_year: float | None = None
 

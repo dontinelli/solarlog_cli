@@ -7,7 +7,7 @@ from datetime import datetime
 import json
 from typing import Any
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientTimeout
 
 from .solarlog_exceptions import SolarLogConnectionError, SolarLogUpdateError
 from .solarlog_models import SolarlogData
@@ -51,10 +51,12 @@ class Client:
         }
 
         try:
-            async with asyncio.timeout(self.request_timeout):
-                response = await self.session.post(
-                    url=url, headers=header, json=json_payload
-                )
+            response = await self.session.post(
+                url=url,
+                headers=header,
+                json=json_payload,
+                timeout=ClientTimeout(total=self.request_timeout)
+            )
         except asyncio.TimeoutError as exception:
             msg = f"Timeout occurred while connecting to Solar-Log at {self.host}"
             raise SolarLogConnectionError(msg) from exception
@@ -126,7 +128,7 @@ class Client:
         raw_data: dict = await self.execute_http_request({854: None})
         data_list = raw_data["854"][-1][-1]
 
-        data = {}
+        data: dict[int, float] = {}
 
         for item in data_list:
             if item != 0:
@@ -144,20 +146,20 @@ class Client:
 
         return data
 
-    async def get_device_list(self) -> dict[int, dict[str, str]]:
+    async def get_device_list(self) -> dict[int, str]:
         """Get list of all connected devices."""
 
         # get list of all inverters connected to Solar-Log
         raw_data: dict = await self.execute_http_request({740: None})
         raw_data = raw_data["740"]
 
-        device_list: dict[int, dict[str, str]] = {}
+        device_list: dict[int, str] = {}
 
         for key, value in raw_data.items():
             if value != "Err":
                 # get name of the inverter
                 raw_data = await self.execute_http_request({141: {key: {119: None}}})
-                device_list |= {int(key): {"name": raw_data["141"][key]["119"]}}
+                device_list |= {int(key): raw_data["141"][key]["119"]}
 
         return device_list
 
