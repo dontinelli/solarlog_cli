@@ -1,0 +1,83 @@
+# serializer version: 1
+# name: test_update_data[asyncio]
+  dict({
+    'alternator_loss': 100,
+    'capacity': 0.27901119402985075,
+    'consumption_ac': 3110,
+    'consumption_day': 47819,
+    'consumption_month': 697471,
+    'consumption_total': 28385247,
+    'consumption_year': 4218251,
+    'consumption_yesterday': 94350,
+    'efficiency': 0.9665663657639585,
+    'inverter_data': dict({
+      0: dict({
+        'consumption_year': 4227027.0,
+        'current_power': 3170.0,
+        'enabled': True,
+        'name': '',
+      }),
+      1: dict({
+        'consumption_year': 1920650.0,
+        'current_power': None,
+        'enabled': True,
+        'name': '',
+      }),
+      2: dict({
+        'consumption_year': None,
+        'current_power': None,
+        'enabled': False,
+        'name': '',
+      }),
+      3: dict({
+        'consumption_year': None,
+        'current_power': 2816.0,
+        'enabled': True,
+        'name': '',
+      }),
+    }),
+    'last_updated': datetime.datetime(2024, 8, 26, 14, 19, 45, tzinfo=zoneinfo.ZoneInfo(key='UTC')),
+    'power_ac': 2891,
+    'power_available': -219,
+    'power_dc': 2991,
+    'production_year': 8852462,
+    'self_consumption_year': 2071,
+    'total_power': 10720,
+    'usage': 1.075752334832238,
+    'voltage_ac': 0,
+    'voltage_dc': 492,
+    'yield_day': 17490,
+    'yield_month': 1179844,
+    'yield_total': 55543544,
+    'yield_year': 8843344,
+    'yield_yesterday': 12955,
+  })
+# ---
+# name: test_update_device_list[asyncio]
+  dict({
+    0: dict({
+      'consumption_year': None,
+      'current_power': None,
+      'enabled': True,
+      'name': 'Device 1',
+    }),
+    1: dict({
+      'consumption_year': None,
+      'current_power': None,
+      'enabled': False,
+      'name': 'Device 2',
+    }),
+    2: dict({
+      'consumption_year': None,
+      'current_power': None,
+      'enabled': False,
+      'name': 'Device 3',
+    }),
+    3: dict({
+      'consumption_year': None,
+      'current_power': None,
+      'enabled': True,
+      'name': 'Device 4',
+    }),
+  })
+# ---

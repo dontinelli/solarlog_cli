@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./src/solarlog_cli"
+    ],
+    "python.analysis.typeCheckingMode": "basic"
+}
