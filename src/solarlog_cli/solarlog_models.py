@@ -40,10 +40,10 @@ class SolarlogData(DataClassDictMixin):
     yield_total: float
 
     #calculated values
-    alternator_loss: float | None = None
+    alternator_loss: float = 0
     capacity: float | None = None
     efficiency: float | None = None
-    power_available: float | None = None
+    power_available: float = 0
     usage: float | None = None
 
     #extended data

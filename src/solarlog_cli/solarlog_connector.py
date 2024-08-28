@@ -60,15 +60,15 @@ class SolarLogConnector:
         #calculated values (for downward compatibility)
         data.alternator_loss = data.power_dc - data.power_ac
         if data.power_dc != 0:
-            data.efficiency = data.power_ac / data.power_dc
+            data.efficiency = round(data.power_ac / data.power_dc *100, 1)
         if data.power_ac != 0:
-            data.usage = data.consumption_ac / data.power_ac
+            data.usage = round(data.consumption_ac / data.power_ac * 100, 1)
             data.power_available = data.power_ac - data.consumption_ac
         else:
             data.usage = 0.0
             data.power_available = 0.0
         if data.total_power != 0:
-            data.capacity = data.power_dc / data.total_power
+            data.capacity = round(data.power_dc / data.total_power * 100, 1)
 
         return data
 
