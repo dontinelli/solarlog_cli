@@ -47,6 +47,6 @@ class SolarlogData(DataClassDictMixin):
     usage: float | None = None
 
     #extended data
-    inverter_data: dict[int, InverterData] | None = None
+    inverter_data: dict[int, InverterData] = {}
     production_year: float | None = None
     self_consumption_year: float | None = None
