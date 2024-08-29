@@ -1,5 +1,5 @@
 """Models for SolarLog."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from mashumaro import DataClassDictMixin
@@ -12,7 +12,7 @@ class InverterData():
     name: str = ""
     enabled: bool = False
     current_power: float | None = None
-    consumption_year: float | None = None
+    consumption_year: float | None= None
 
 
 @dataclass
@@ -40,13 +40,13 @@ class SolarlogData(DataClassDictMixin):
     yield_total: float
 
     #calculated values
-    alternator_loss: float | None = None
+    alternator_loss: float = 0
     capacity: float | None = None
     efficiency: float | None = None
-    power_available: float | None = None
+    power_available: float = 0
     usage: float | None = None
 
     #extended data
-    inverter_data: dict[int, InverterData] | None = None
+    inverter_data: dict[int, InverterData] = field(default_factory=dict)
     production_year: float | None = None
     self_consumption_year: float | None = None

@@ -2,14 +2,14 @@
 # name: test_update_data[asyncio]
   dict({
     'alternator_loss': 100,
-    'capacity': 0.27901119402985075,
+    'capacity': 27.9,
     'consumption_ac': 3110,
     'consumption_day': 47819,
     'consumption_month': 697471,
     'consumption_total': 28385247,
     'consumption_year': 4218251,
     'consumption_yesterday': 94350,
-    'efficiency': 0.9665663657639585,
+    'efficiency': 96.7,
     'inverter_data': dict({
       0: dict({
         'consumption_year': 4227027.0,
@@ -43,7 +43,7 @@
     'production_year': 8852462,
     'self_consumption_year': 2071,
     'total_power': 10720,
-    'usage': 1.075752334832238,
+    'usage': 107.6,
     'voltage_ac': 0,
     'voltage_dc': 492,
     'yield_day': 17490,
