@@ -11,8 +11,8 @@ class InverterData():
 
     name: str = ""
     enabled: bool = False
-    current_power: float | None = None
-    consumption_year: float | None = None
+    current_power: float = 0
+    consumption_year: float  = 0
 
 
 @dataclass
