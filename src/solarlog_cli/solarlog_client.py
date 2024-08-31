@@ -137,7 +137,7 @@ class Client:
         return data
 
     async def get_energy(self, data: SolarlogData) -> SolarlogData:
-        """Get power data from Solar-Log"""
+        """Get energy data from Solar-Log"""
 
         raw_data: dict = await self.execute_http_request({878: None})
 

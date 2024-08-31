@@ -14,20 +14,22 @@ _LOGGER = logging.getLogger(__name__)
 class SolarLogConnector:
     """Connector class to access Solar-Log."""
 
-    def __init__( # pylint: disable=dangerous-default-value
+    def __init__(
         self,
         host: str,
         extended_data: bool = False,
         tz: str = "",
-        device_enabled: dict[int, bool] = {},
+        device_enabled: dict[int, bool] | None = None,
     ):
         self.client = Client(host)
         self.extended_data: bool = extended_data
 
         self._device_list: dict[int, InverterData] = {}
-        if device_enabled != {}:
-            for key, value in device_enabled.items():
-                self._device_list |= {key: InverterData(enabled=value)}
+        if device_enabled is None:
+            device_enabled = {}
+
+        for key, value in device_enabled.items():
+            self._device_list |= {key: InverterData(enabled=value)}
 
         self.timezone: tzinfo = timezone.utc if tz == "" else ZoneInfo(tz)
 
@@ -74,7 +76,7 @@ class SolarLogConnector:
 
     async def update_device_list(self) -> dict[int, InverterData]:
         """Update list of devices."""
-        if not self.extended_data or self._device_list is None:
+        if not self.extended_data:
             return {}
 
         devices = await self.client.get_device_list()
