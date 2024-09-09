@@ -113,6 +113,7 @@ class Client:
                 msg,
                 {"Content-Type": content_type, "response": text},
             )
+
         _LOGGER.info("HTTP-request successful: %s",response)
         return response
 
@@ -122,6 +123,9 @@ class Client:
         text = await response.text()
         _LOGGER.info("Parsing http response: %s",text)
 
+        if text == '{"QUERY IMPOSSIBLE 000"}':
+            raise SolarLogUpdateError(f"Server response: {text}")
+        
         try:
             json_response = json.loads(text)
         except ValueError as err:
