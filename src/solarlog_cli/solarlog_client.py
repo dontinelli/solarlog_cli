@@ -69,9 +69,9 @@ class Client:
             return False
 
         text = await response.text()
-        if text == "FAILED - Password was wrong":
+        if text.count("FAILED - Password was wrong"):
             raise SolarLogAuthenticationError
-        if text == "FAILED - User was wrong":
+        if text.count("FAILED - User was wrong"):
             #Response means, that no password is required
             self.password = ""
             return False
