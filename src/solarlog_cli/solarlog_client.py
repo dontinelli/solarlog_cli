@@ -18,7 +18,7 @@ from .solarlog_exceptions import (
 
 from .solarlog_models import SolarlogData
 
-SOLARLOG_REQUEST_PAYLOAD = "{'801': {'170': null}}"
+SOLARLOG_REQUEST_PAYLOAD = '{ "801": { "170": null } }'
 _LOGGER = logging.getLogger(__name__)
 
 class Client:
@@ -125,7 +125,7 @@ class Client:
 
         if text == '{"QUERY IMPOSSIBLE 000"}':
             raise SolarLogUpdateError(f"Server response: {text}")
-        
+
         try:
             json_response = json.loads(text)
         except ValueError as err:
@@ -171,7 +171,7 @@ class Client:
         """Get power data from Solar-Log"""
 
         raw_data: dict = await self.parse_http_response(
-            await self.execute_http_request("{'782': null}")
+            await self.execute_http_request('{ "782": null }')
         )
 
         data = {int(key): val for key, val in raw_data["782"].items() if val != "0"}
@@ -182,7 +182,7 @@ class Client:
         """Get power data from Solar-Log"""
 
         raw_data: dict = await self.parse_http_response(
-            await self.execute_http_request("{'854': null}")
+            await self.execute_http_request('{ "854": null }')
         )
         data_list = raw_data["854"][-1][-1]
 
@@ -198,7 +198,7 @@ class Client:
         """Get energy data from Solar-Log"""
 
         raw_data: dict = await self.parse_http_response(
-            await self.execute_http_request("{'878': null}")
+            await self.execute_http_request('{ "878": null }')
         )
 
         data.production_year = raw_data["878"][-1][1]
@@ -211,7 +211,7 @@ class Client:
 
         # get list of all inverters connected to Solar-Log
         raw_data: dict = await self.parse_http_response(
-            await self.execute_http_request("{'740': null}")
+            await self.execute_http_request('{ "740": null }')
         )
         raw_data = raw_data["740"]
 
@@ -221,7 +221,7 @@ class Client:
             if value != "Err":
                 # get name of the inverter
                 raw_data = await self.parse_http_response(
-                    await self.execute_http_request(f"{{'141': {{ {key}: {{'119': null}}}}}}")
+                    await self.execute_http_request(f"{{ '141': {{ {key}: {{ '119': null }} }} }}")
                 )
                 device_list |= {int(key): raw_data["141"][key]["119"]}
 
