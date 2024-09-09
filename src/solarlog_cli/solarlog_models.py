@@ -4,7 +4,6 @@ from datetime import datetime
 
 from mashumaro import DataClassDictMixin
 
-
 @dataclass
 class InverterData():
     """Inverter Data model."""

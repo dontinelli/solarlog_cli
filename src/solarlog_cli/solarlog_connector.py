@@ -4,8 +4,10 @@ from datetime import timezone, tzinfo
 import logging
 from zoneinfo import ZoneInfo
 
+from typing import Any
+
 from .solarlog_client import Client
-from .solarlog_exceptions import SolarLogUpdateError
+from .solarlog_exceptions import SolarLogUpdateError, SolarLogConnectionError
 from .solarlog_models import SolarlogData, InverterData
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,8 +22,9 @@ class SolarLogConnector:
         extended_data: bool = False,
         tz: str = "",
         device_enabled: dict[int, bool] | None = None,
+        password: str = "",
     ):
-        self.client = Client(host)
+        self.client = Client(host, password)
         self.extended_data: bool = extended_data
 
         self._device_list: dict[int, InverterData] = {}
@@ -37,6 +40,27 @@ class SolarLogConnector:
         """Test if connection to Solar-Log works."""
 
         return await self.client.test_connection()
+    
+    async def test_extended_data_available(self) -> bool:
+        """Test if extended data is reachable."""
+
+        response: dict[str, Any] = {}
+
+        try:
+            response = await self.client.parse_http_response(await self.client.execute_http_request("{'740': None}"))
+        except (SolarLogConnectionError, SolarLogUpdateError):
+            return False
+
+        if response["740"]["0"] == "ACCESS DENIED":
+            #User has no unprotected access to extended API, try to log in
+            return await self.client.login()
+        
+        return True
+    
+    async def login(self) -> bool:
+        """Login to Solar-Log."""
+
+        return await self.client.login()
 
     async def update_data(self) -> SolarlogData:
         """Get data from Solar-Log."""

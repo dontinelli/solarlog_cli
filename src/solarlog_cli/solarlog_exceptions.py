@@ -2,10 +2,13 @@
 
 
 class SolarLogError(Exception):
-    """Generic exception."""
+    """Generic SolarLog exception."""
 
 class SolarLogConnectionError(SolarLogError):
-    """Analytics connection exception."""
+    """SolarLog connection exception."""
+
+class SolarLogAuthenticationError(SolarLogError):
+    """Exception in login data."""
 
 class SolarLogUpdateError(SolarLogError):
-    """Analytics connection exception."""
+    """Exception in updating data."""
