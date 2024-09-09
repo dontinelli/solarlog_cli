@@ -50,7 +50,7 @@ class SolarLogConnector:
 
         try:
             response = await self.client.parse_http_response(
-                await self.client.execute_http_request("{'740': None}")
+                await self.client.execute_http_request("{'740': null}")
             )
         except (SolarLogConnectionError, SolarLogUpdateError):
             return False
