@@ -133,6 +133,9 @@ class Client:
         if text == '{"QUERY IMPOSSIBLE 000"}':
             raise SolarLogUpdateError(f"Server response: {text}")
 
+        if text.count("ACCESS DENIED"):
+            raise SolarLogAuthenticationError(f"Server response: {text}")
+
         try:
             json_response = json.loads(text)
         except ValueError as err:
