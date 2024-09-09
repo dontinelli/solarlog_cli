@@ -70,10 +70,11 @@ class Client:
 
         if await response.text() == "FAILED - Password was wrong":
             raise SolarLogAuthenticationError
-
+        
+        _LOGGER.info("response: %s",response)
         #self.token = response.cookies["SolarLog"]
         self.token = response.headers["Set-Cookie"][9:]
-        _LOGGER.debug("Login successful, token: %s",self.token)
+        _LOGGER.info("Login successful, token: %s",self.token)
 
         return True
 
@@ -90,8 +91,8 @@ class Client:
             header |= {"Cookie": f"SolarLog={self.token}"}
             body = f"token={self.token}; " + body
 
-        _LOGGER.debug("HTTP-request header: %s",header)
-        _LOGGER.debug("HTTP-request body: %s", body)
+        _LOGGER.info("HTTP-request header: %s",header)
+        _LOGGER.info("HTTP-request body: %s", body)
 
         try:
             response = await self.session.post(
