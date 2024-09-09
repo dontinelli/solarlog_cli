@@ -24,6 +24,8 @@ _LOGGER = logging.getLogger(__name__)
 class Client:
     """Client class to access Solar-Log."""
 
+    session: ClientSession | None = None
+
     def __init__(self, host: str, password: str = "") -> None:
         self.host: str = host
         self.password: str = password
@@ -31,14 +33,16 @@ class Client:
 
         self.request_timeout = 10
 
-        self.session: ClientSession = ClientSession(
-            timeout=ClientTimeout(total=self.request_timeout)
-        )
         self._close_session: bool = True
 
 
     async def test_connection(self) -> bool:
         """Test the connection to Solar-Log."""
+        if self.session is None:
+            self.session = ClientSession(
+                timeout=ClientTimeout(total=self.request_timeout)
+            )
+            self._close_session = True
 
         url = f"{self.host}/getjp"
 
