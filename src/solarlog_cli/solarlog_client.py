@@ -10,7 +10,12 @@ from typing import Any
 
 from aiohttp import ClientResponse, ClientSession, ClientTimeout
 
-from .solarlog_exceptions import SolarLogAuthenticationError, SolarLogConnectionError, SolarLogUpdateError
+from .solarlog_exceptions import (
+    SolarLogAuthenticationError,
+    SolarLogConnectionError,
+    SolarLogUpdateError,
+)
+
 from .solarlog_models import SolarlogData
 
 SOLARLOG_REQUEST_PAYLOAD = "{'801': {'170': None}}"
@@ -24,10 +29,13 @@ class Client:
         self.password: str = password
         self.token: str = ""
 
-        self.session: ClientSession = ClientSession()
+        self.request_timeout = 10
+
+        self.session: ClientSession = ClientSession(
+            timeout=ClientTimeout(total=self.request_timeout)
+        )
         self._close_session: bool = True
 
-        self.request_timeout = 10
 
     async def test_connection(self) -> bool:
         """Test the connection to Solar-Log."""
@@ -46,26 +54,26 @@ class Client:
 
         if self.password == "":
             return False
-        
+
         payload: str = f"u=user&p={self.password}"
-        
+
         response = await self.execute_http_request(payload,"login")
 
         if response.status != 200:
             _LOGGER.debug("Error during login: %s", response.status)
             return False
-        
+
         if await response.text() == "FAILED - Password was wrong":
             raise SolarLogAuthenticationError
 
-
+        #self.token = response.cookies["SolarLog"]
         self.token = response.headers["Set-Cookie"][9:]
         _LOGGER.debug("Login successful, token: %s",self.token)
 
         return True
 
     async def execute_http_request(self, body: str, path: str = "getjp") -> ClientResponse:
-        """Hepler function to process the HTTP Get call."""
+        """Helper function to process the HTTP Get call."""
         if self.session is None:
             self.session = ClientSession()
             self._close_session = True
@@ -82,7 +90,6 @@ class Client:
                 url=url,
                 headers=header,
                 data=body,
-                timeout=ClientTimeout(total=self.request_timeout)
             )
         except asyncio.TimeoutError as exception:
             msg = f"Timeout occurred while connecting to Solar-Log at {self.host}"
@@ -98,11 +105,12 @@ class Client:
                 msg,
                 {"Content-Type": content_type, "response": text},
             )
-        
+
         return response
 
-    async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:    
-        
+    async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:
+        """Helper function to parse the HTTP response."""
+
         text = await response.text()
 
         try:
@@ -119,7 +127,9 @@ class Client:
     async def get_basic_data(self) -> SolarlogData:
         """Get basic data from Solar-Log."""
 
-        raw_data: dict[str, Any] = await self.parse_http_response(await self.execute_http_request(SOLARLOG_REQUEST_PAYLOAD))
+        raw_data: dict[str, Any] = await self.parse_http_response(
+            await self.execute_http_request(SOLARLOG_REQUEST_PAYLOAD)
+        )
         raw_data = raw_data["801"]["170"]
 
         data = SolarlogData(
@@ -147,7 +157,9 @@ class Client:
     async def get_power_per_inverter(self) -> dict[int, float]:
         """Get power data from Solar-Log"""
 
-        raw_data: dict = await self.parse_http_response(await self.execute_http_request("{'782': None}"))
+        raw_data: dict = await self.parse_http_response(
+            await self.execute_http_request("{'782': None}")
+        )
 
         data = {int(key): val for key, val in raw_data["782"].items() if val != "0"}
 
@@ -156,7 +168,9 @@ class Client:
     async def get_energy_per_inverter(self) -> dict[int, float]:
         """Get power data from Solar-Log"""
 
-        raw_data: dict = await self.parse_http_response(await self.execute_http_request("{'854': None}"))
+        raw_data: dict = await self.parse_http_response(
+            await self.execute_http_request("{'854': None}")
+        )
         data_list = raw_data["854"][-1][-1]
 
         data: dict[int, float] = {}
@@ -170,7 +184,9 @@ class Client:
     async def get_energy(self, data: SolarlogData) -> SolarlogData:
         """Get energy data from Solar-Log"""
 
-        raw_data: dict = await self.parse_http_response(await self.execute_http_request("{'878': None}"))
+        raw_data: dict = await self.parse_http_response(
+            await self.execute_http_request("{'878': None}")
+        )
 
         data.production_year = raw_data["878"][-1][1]
         data.self_consumption_year = raw_data["878"][-1][3]
@@ -181,7 +197,9 @@ class Client:
         """Get list of all connected devices."""
 
         # get list of all inverters connected to Solar-Log
-        raw_data: dict = await self.parse_http_response(await self.execute_http_request("{'740': None}"))
+        raw_data: dict = await self.parse_http_response(
+            await self.execute_http_request("{'740': None}")
+        )
         raw_data = raw_data["740"]
 
         device_list: dict[int, str] = {}
@@ -189,7 +207,9 @@ class Client:
         for key, value in raw_data.items():
             if value != "Err":
                 # get name of the inverter
-                raw_data = await self.parse_http_response(await self.execute_http_request(f"{{'141': {{ {key}: {{'119': None}}}}}}"))
+                raw_data = await self.parse_http_response(
+                    await self.execute_http_request(f"{{'141': {{ {key}: {{'119': None}}}}}}")
+                )
                 device_list |= {int(key): raw_data["141"][key]["119"]}
 
         return device_list

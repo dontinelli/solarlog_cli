@@ -16,6 +16,8 @@ _LOGGER = logging.getLogger(__name__)
 class SolarLogConnector:
     """Connector class to access Solar-Log."""
 
+    # pylint: disable=too-many-arguments
+
     def __init__(
         self,
         host: str,
@@ -40,23 +42,25 @@ class SolarLogConnector:
         """Test if connection to Solar-Log works."""
 
         return await self.client.test_connection()
-    
+
     async def test_extended_data_available(self) -> bool:
         """Test if extended data is reachable."""
 
         response: dict[str, Any] = {}
 
         try:
-            response = await self.client.parse_http_response(await self.client.execute_http_request("{'740': None}"))
+            response = await self.client.parse_http_response(
+                await self.client.execute_http_request("{'740': None}")
+            )
         except (SolarLogConnectionError, SolarLogUpdateError):
             return False
 
         if response["740"]["0"] == "ACCESS DENIED":
             #User has no unprotected access to extended API, try to log in
             return await self.client.login()
-        
+
         return True
-    
+
     async def login(self) -> bool:
         """Login to Solar-Log."""
 
