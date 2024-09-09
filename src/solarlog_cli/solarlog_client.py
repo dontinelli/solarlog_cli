@@ -221,7 +221,7 @@ class Client:
             if value != "Err":
                 # get name of the inverter
                 raw_data = await self.parse_http_response(
-                    await self.execute_http_request(f"{{ '141': {{ '{key}': {{ '119': null }} }} }}")
+                    await self.execute_http_request(f"""{{ "141": {{ "{key}": {{ "119": null }} }} }}""")
                 )
                 device_list |= {int(key): raw_data["141"][key]["119"]}
 
