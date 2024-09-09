@@ -68,10 +68,12 @@ class Client:
             _LOGGER.debug("Error during login: %s", response.status)
             return False
 
-        if await response.text() == "FAILED - Password was wrong":
+        text = await response.text()
+        if text == "FAILED - Password was wrong":
             raise SolarLogAuthenticationError
-        
-        _LOGGER.info("response: %s",response)
+
+        _LOGGER.info("response: %s",text)
+        _LOGGER.info("cookies: %s",response.cookies)
         self.token = response.cookies["SolarLog"].value
         #self.token = response.headers["Set-Cookie"][9:]
         _LOGGER.info("Login successful, token: %s",self.token)
@@ -222,7 +224,9 @@ class Client:
             if value != "Err":
                 # get name of the inverter
                 raw_data = await self.parse_http_response(
-                    await self.execute_http_request(f"""{{ "141": {{ "{key}": {{ "119": null }} }} }}""")
+                    await self.execute_http_request(
+                        f"""{{ "141": {{ "{key}": {{ "119": null }} }} }}"""
+                    )
                 )
                 device_list |= {int(key): raw_data["141"][key]["119"]}
 
