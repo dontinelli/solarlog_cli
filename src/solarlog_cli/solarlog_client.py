@@ -72,8 +72,8 @@ class Client:
             raise SolarLogAuthenticationError
         
         _LOGGER.info("response: %s",response)
-        #self.token = response.cookies["SolarLog"]
-        self.token = response.headers["Set-Cookie"][9:]
+        self.token = response.cookies["SolarLog"].value
+        #self.token = response.headers["Set-Cookie"][9:]
         _LOGGER.info("Login successful, token: %s",self.token)
 
         return True
