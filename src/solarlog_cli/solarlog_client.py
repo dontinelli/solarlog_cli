@@ -110,13 +110,14 @@ class Client:
                 msg,
                 {"Content-Type": content_type, "response": text},
             )
-
+        _LOGGER.debug("HTTP-request successful: %s",response)
         return response
 
     async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:
         """Helper function to parse the HTTP response."""
 
         text = await response.text()
+        _LOGGER.debug("Parsing http response: %s",text)
 
         try:
             json_response = json.loads(text)
