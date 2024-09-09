@@ -24,14 +24,15 @@ _LOGGER = logging.getLogger(__name__)
 class Client:
     """Client class to access Solar-Log."""
 
-    session: ClientSession | None = None
-
     def __init__(self, host: str, password: str = "") -> None:
         self.host: str = host
         self.password: str = password
         self.token: str = ""
 
         self.request_timeout = 10
+        self.session = ClientSession(
+            timeout=ClientTimeout(total=self.request_timeout)
+        )
 
         self._close_session: bool = True
 
