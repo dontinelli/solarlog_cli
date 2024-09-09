@@ -90,8 +90,8 @@ class Client:
             header |= {"Cookie": f"SolarLog={self.token}"}
             body = f"token={self.token}; " + body
 
-        _LOGGER.info("HTTP-request header: %s",header)
-        _LOGGER.info("HTTP-request body: %s", body)
+        _LOGGER.debug("HTTP-request header: %s",header)
+        _LOGGER.debug("HTTP-request body: %s", body)
 
         try:
             response = await self.session.post(
@@ -114,14 +114,14 @@ class Client:
                 {"Content-Type": content_type, "response": text},
             )
 
-        _LOGGER.info("HTTP-request successful: %s",response)
+        _LOGGER.debug("HTTP-request successful: %s",response)
         return response
 
     async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:
         """Helper function to parse the HTTP response."""
 
         text = await response.text()
-        _LOGGER.info("Parsing http response: %s",text)
+        _LOGGER.debug("Parsing http response: %s",text)
 
         if text == '{"QUERY IMPOSSIBLE 000"}':
             raise SolarLogUpdateError(f"Server response: {text}")

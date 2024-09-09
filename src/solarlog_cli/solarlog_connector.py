@@ -145,6 +145,11 @@ class SolarLogConnector:
         """List of all devices of Solar-Log."""
         return self._device_list
 
+    @property
+    def password(self) -> str:
+        """Password for Solar-Log."""
+        return self.client.password
+
     def device(self, device_id: int) -> InverterData:
         """Get device data."""
         return self._device_list.get(device_id, InverterData())
