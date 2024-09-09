@@ -120,7 +120,7 @@ class Client:
         """Helper function to parse the HTTP response."""
 
         text = await response.text()
-        _LOGGER.debug("Parsing http response: %s",text)
+        _LOGGER.info("Parsing http response: %s",text)
 
         try:
             json_response = json.loads(text)
