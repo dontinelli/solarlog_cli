@@ -56,7 +56,7 @@ class SolarLogConnector:
             return False
         except SolarLogAuthenticationError:
             #User has no unprotected access to extended API, try to log in
-            return await self.client.login()
+            return await self.login()
 
         return True
 

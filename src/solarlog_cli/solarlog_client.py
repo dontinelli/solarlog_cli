@@ -64,10 +64,6 @@ class Client:
 
         response = await self.execute_http_request(payload,"login")
 
-        if response.status != 200:
-            _LOGGER.debug("Error during login: %s", response.status)
-            return False
-
         text = await response.text()
         if text.count("FAILED - Password was wrong"):
             raise SolarLogAuthenticationError
@@ -76,18 +72,20 @@ class Client:
             self.password = ""
             return False
 
-        _LOGGER.info("response: %s",text)
-        _LOGGER.info("cookies: %s",response.cookies)
         self.token = response.cookies["SolarLog"].value
-        #self.token = response.headers["Set-Cookie"][9:]
-        _LOGGER.info("Login successful, token: %s",self.token)
+
+        _LOGGER.debug("response: %s",text)
+        _LOGGER.debug("cookies: %s",response.cookies)
+        _LOGGER.debug("Login successful, token: %s",self.token)
 
         return True
 
     async def execute_http_request(self, body: str, path: str = "getjp") -> ClientResponse:
         """Helper function to process the HTTP Get call."""
         if self.session is None:
-            self.session = ClientSession()
+            self.session = ClientSession(
+                timeout=ClientTimeout(total=self.request_timeout)
+            )
             self._close_session = True
 
         url = f"{self.host}/{path}"
@@ -97,8 +95,8 @@ class Client:
             header |= {"Cookie": f"SolarLog={self.token}"}
             body = f"token={self.token}; " + body
 
-        _LOGGER.info("HTTP-request header: %s",header)
-        _LOGGER.info("HTTP-request body: %s", body)
+        _LOGGER.debug("HTTP-request header: %s",header)
+        _LOGGER.debug("HTTP-request body: %s", body)
 
         try:
             response = await self.session.post(
