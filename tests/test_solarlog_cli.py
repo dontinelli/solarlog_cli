@@ -95,7 +95,7 @@ async def test_login_and_data_retreival(responses: aioresponses) -> None:
         body="SUCCESS - Password was correct, you are now logged in",
     )
     solarlog_connector = SolarLogConnector("http://solarlog.com", password="pwd")
-    
+
     assert await solarlog_connector.login()
     assert solarlog_connector.client.token == "token"
 
@@ -218,7 +218,7 @@ async def test_update_data_with_data_exceptions(
     responses.post(
         "http://solarlog.com/getjp",
         body='{"QUERY IMPOSSIBLE 000"}',
-    )    
+    )
     responses.post(
         "http://solarlog.com/getjp",
         body=load_fixture("basic_data_during_update.json"),
