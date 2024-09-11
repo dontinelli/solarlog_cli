@@ -48,15 +48,20 @@ class SolarLogConnector:
     async def test_extended_data_available(self) -> bool:
         """Test if extended data is reachable."""
 
+        _LOGGER.debug("Start testing extended data available")
+
         try:
             await self.client.parse_http_response(
-                await self.client.execute_http_request("{'740': null}")
+                await self.client.execute_http_request('{"740": null}')
             )
-        except (SolarLogConnectionError, SolarLogUpdateError):
+        except (SolarLogConnectionError, SolarLogUpdateError) as err:
+            _LOGGER.debug("Error: %s", err)
             return False
-        except SolarLogAuthenticationError:
+        except SolarLogAuthenticationError as err:
             #User has no unprotected access to extended API, try to log in
+            _LOGGER.debug("Authentication error: %s", err)
             self.extended_data = await self.login()
+            _LOGGER.debug("Login successful?: %s", self.extended_data)
         else:
             self.extended_data = True
 

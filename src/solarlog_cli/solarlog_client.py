@@ -128,7 +128,7 @@ class Client:
         text = await response.text()
         _LOGGER.debug("Parsing http response: %s",text)
 
-        if text == '{"QUERY IMPOSSIBLE 000"}':
+        if text.count('{"QUERY IMPOSSIBLE 000"}'):
             raise SolarLogUpdateError(f"Server response: {text}")
 
         if text.count("ACCESS DENIED"):
