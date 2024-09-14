@@ -5,7 +5,11 @@ import logging
 from zoneinfo import ZoneInfo
 
 from .solarlog_client import Client
-from .solarlog_exceptions import SolarLogUpdateError
+from .solarlog_exceptions import(
+    SolarLogAuthenticationError,
+    SolarLogConnectionError,
+    SolarLogUpdateError,
+)
 from .solarlog_models import SolarlogData, InverterData
 
 _LOGGER = logging.getLogger(__name__)
@@ -14,14 +18,17 @@ _LOGGER = logging.getLogger(__name__)
 class SolarLogConnector:
     """Connector class to access Solar-Log."""
 
+    # pylint: disable=too-many-arguments
+
     def __init__(
         self,
         host: str,
         extended_data: bool = False,
         tz: str = "",
         device_enabled: dict[int, bool] | None = None,
+        password: str = "",
     ):
-        self.client = Client(host)
+        self.client = Client(host, password)
         self.extended_data: bool = extended_data
 
         self._device_list: dict[int, InverterData] = {}
@@ -37,6 +44,33 @@ class SolarLogConnector:
         """Test if connection to Solar-Log works."""
 
         return await self.client.test_connection()
+
+    async def test_extended_data_available(self) -> bool:
+        """Test if extended data is reachable."""
+
+        _LOGGER.debug("Start testing extended data available")
+
+        try:
+            await self.client.parse_http_response(
+                await self.client.execute_http_request('{"740": null}')
+            )
+        except (SolarLogConnectionError, SolarLogUpdateError) as err:
+            _LOGGER.debug("Error: %s", err)
+            return False
+        except SolarLogAuthenticationError as err:
+            #User has no unprotected access to extended API, try to log in
+            _LOGGER.debug("Authentication error: %s", err)
+            self.extended_data = await self.login()
+            _LOGGER.debug("Login successful?: %s", self.extended_data)
+        else:
+            self.extended_data = True
+
+        return self.extended_data
+
+    async def login(self) -> bool:
+        """Login to Solar-Log."""
+
+        return await self.client.login()
 
     async def update_data(self) -> SolarlogData:
         """Get data from Solar-Log."""
@@ -116,6 +150,11 @@ class SolarLogConnector:
     def device_list(self) -> dict[int, InverterData]:
         """List of all devices of Solar-Log."""
         return self._device_list
+
+    @property
+    def password(self) -> str:
+        """Password for Solar-Log."""
+        return self.client.password
 
     def device(self, device_id: int) -> InverterData:
         """Get device data."""
