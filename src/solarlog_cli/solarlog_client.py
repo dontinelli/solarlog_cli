@@ -24,6 +24,8 @@ _LOGGER = logging.getLogger(__name__)
 class Client:
     """Client class to access Solar-Log."""
 
+    # pylint: disable=too-many-positional-arguments
+
     def __init__(self, host: str, password: str = "") -> None:
         self.host: str = host
         self.password: str = password
@@ -209,8 +211,9 @@ class Client:
             await self.execute_http_request('{ "878": null }')
         )
 
-        data.production_year = raw_data["878"][-1][1]
-        data.self_consumption_year = raw_data["878"][-1][3]
+        if raw_data["878"] != "QUERY IMPOSSIBLE 000":
+            data.production_year = raw_data["878"][-1][1]
+            data.self_consumption_year = raw_data["878"][-1][3]
 
         return data
 
