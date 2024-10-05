@@ -24,6 +24,8 @@ _LOGGER = logging.getLogger(__name__)
 class Client:
     """Client class to access Solar-Log."""
 
+    # pylint: disable=too-many-positional-arguments
+
     def __init__(self, host: str, password: str = "") -> None:
         self.host: str = host
         self.password: str = password
