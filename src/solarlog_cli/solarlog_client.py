@@ -209,8 +209,9 @@ class Client:
             await self.execute_http_request('{ "878": null }')
         )
 
-        data.production_year = raw_data["878"][-1][1]
-        data.self_consumption_year = raw_data["878"][-1][3]
+        if raw_data["878"] != "QUERY IMPOSSIBLE 000":
+            data.production_year = raw_data["878"][-1][1]
+            data.self_consumption_year = raw_data["878"][-1][3]
 
         return data
 
