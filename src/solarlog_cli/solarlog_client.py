@@ -31,7 +31,7 @@ class Client:
         self.password: str = password
         self.token: str = ""
 
-        self.request_timeout = 10
+        self.request_timeout = 30
         self.session = ClientSession(
             timeout=ClientTimeout(total=self.request_timeout)
         )
