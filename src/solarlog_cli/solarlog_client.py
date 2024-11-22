@@ -26,15 +26,17 @@ class Client:
 
     # pylint: disable=too-many-positional-arguments
 
-    def __init__(self, host: str, password: str = "") -> None:
+    def __init__(self, host: str, session: ClientSession | None, password: str = "") -> None:
         self.host: str = host
         self.password: str = password
         self.token: str = ""
 
         self.request_timeout = 30
-        self.session = ClientSession(
-            timeout=ClientTimeout(total=self.request_timeout)
-        )
+
+        if not session:
+            self.session = ClientSession()
+        else:
+            self.session = session
 
         self._close_session: bool = True
 
@@ -42,14 +44,15 @@ class Client:
     async def test_connection(self) -> bool:
         """Test the connection to Solar-Log."""
         if self.session is None:
-            self.session = ClientSession(
-                timeout=ClientTimeout(total=self.request_timeout)
-            )
+            self.session = ClientSession()
             self._close_session = True
 
         url = f"{self.host}/getjp"
 
-        response = await self.session.post(url, json=SOLARLOG_REQUEST_PAYLOAD)
+        response = await self.session.post(
+            url, json=SOLARLOG_REQUEST_PAYLOAD,
+            timeout=ClientTimeout(total=self.request_timeout)
+        )
 
         if response.status == 200:
             return True
@@ -85,9 +88,7 @@ class Client:
     async def execute_http_request(self, body: str, path: str = "getjp") -> ClientResponse:
         """Helper function to process the HTTP Get call."""
         if self.session is None:
-            self.session = ClientSession(
-                timeout=ClientTimeout(total=self.request_timeout)
-            )
+            self.session = ClientSession()
             self._close_session = True
 
         url = f"{self.host}/{path}"
@@ -105,6 +106,7 @@ class Client:
                 url=url,
                 headers=header,
                 data=body,
+                timeout=ClientTimeout(total=self.request_timeout),
             )
         except asyncio.TimeoutError as exception:
             msg = f"Timeout occurred while connecting to Solar-Log at {self.host}"

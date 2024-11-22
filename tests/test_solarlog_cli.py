@@ -1,6 +1,7 @@
 """Tests for solarlog_cli."""
 
 from aioresponses import aioresponses
+from aiohttp import ClientSession
 
 import pytest
 from syrupy.assertion import SnapshotAssertion
@@ -47,6 +48,26 @@ async def test_connection(
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
 
+
+async def test_existing_session(
+    responses: aioresponses,
+) -> None:
+    """Test connection."""
+    responses.post(
+        "localhost/getjp",
+        status=200,
+    )
+
+    solarlog_connector = SolarLogConnector("localhost", session=ClientSession())
+
+    assert await solarlog_connector.test_connection()
+
+    assert solarlog_connector.host == "localhost"
+
+    assert solarlog_connector.client.session is not None
+    assert not solarlog_connector.client.session.closed
+    await solarlog_connector.client.close()
+    assert solarlog_connector.client.session.closed
 
 async def test_extended_data_available(
     responses: aioresponses,
