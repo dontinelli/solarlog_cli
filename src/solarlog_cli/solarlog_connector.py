@@ -4,6 +4,8 @@ from datetime import timezone, tzinfo
 import logging
 from zoneinfo import ZoneInfo
 
+from aiohttp import ClientSession
+
 from .solarlog_client import Client
 from .solarlog_exceptions import(
     SolarLogAuthenticationError,
@@ -28,8 +30,9 @@ class SolarLogConnector:
         tz: str = "",
         device_enabled: dict[int, bool] | None = None,
         password: str = "",
+        session: ClientSession | None = None,
     ):
-        self.client = Client(host, password)
+        self.client = Client(host, session, password)
         self.extended_data: bool = extended_data
 
         self._device_list: dict[int, InverterData] = {}
