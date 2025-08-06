@@ -176,6 +176,10 @@ async def test_update_data(
         "http://solarlog.com/getjp",
         body=load_fixture("energy_per_inverter.json"),
     )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("battery_data.json"),
+    )
 
     solarlog_connector = SolarLogConnector(
         "http://solarlog.com",
@@ -191,6 +195,44 @@ async def test_update_data(
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
 
+async def test_update_data_without_battery(
+    responses: aioresponses,
+) -> None:
+    """Test update data."""
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("basic_data.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("extended_data.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("power_per_inverter.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("energy_per_inverter.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("battery_data_without_battery.json"),
+    )
+
+    solarlog_connector = SolarLogConnector(
+        "http://solarlog.com",
+        True,
+        "UTC",
+        {0: True, 1: True, 2: False, 3: True},
+    )
+
+    data = await solarlog_connector.update_data()
+
+    assert data.battery_data is None
+
+    await solarlog_connector.client.close()
+    assert solarlog_connector.client.session.closed
 
 @pytest.mark.parametrize(
     ("status", "request_timeout", "error"),

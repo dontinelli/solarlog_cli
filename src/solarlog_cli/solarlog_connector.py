@@ -12,7 +12,7 @@ from .solarlog_exceptions import(
     SolarLogConnectionError,
     SolarLogUpdateError,
 )
-from .solarlog_models import SolarlogData, InverterData
+from .solarlog_models import BatteryData, InverterData, SolarlogData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -95,6 +95,8 @@ class SolarLogConnector:
             if self._device_list != {}:
                 data.inverter_data = await self.update_inverter_data()
 
+            data.battery_data = await self.update_battery_data()
+
             _LOGGER.debug("Extended data updated: %s",data)
 
         #calculated values (for downward compatibility)
@@ -111,6 +113,26 @@ class SolarLogConnector:
             data.capacity = data.power_dc / data.total_power * 100
 
         return data
+
+
+    async def update_battery_data(self) -> BatteryData | None:
+        """Update device specific data."""
+
+        raw_data = await self.client.get_battery_data()
+
+        if raw_data == []:
+            return None
+
+        battery_data = BatteryData(
+                status=int(raw_data[0]),
+                level=raw_data[1],
+                charge_power=raw_data[2],
+                discharge_power=raw_data[3],
+            )
+
+        _LOGGER.debug("Battery data updated: %s",battery_data)
+
+        return battery_data
 
     async def update_device_list(self) -> dict[int, InverterData]:
         """Update list of devices."""
