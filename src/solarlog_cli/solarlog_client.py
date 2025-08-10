@@ -179,14 +179,14 @@ class Client:
 
         return data
 
-    async def get_battery_data(self) -> list[int | float]:
+    async def get_battery_data(self) -> list[float]:
         """Get power data from Solar-Log"""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "858": null }')
         )
 
-        data: list[int | float] = raw_data["858"]
+        data: list[float] = raw_data["858"]
 
         return data
 

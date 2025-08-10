@@ -124,7 +124,7 @@ class SolarLogConnector:
             return None
 
         battery_data = BatteryData(
-                status=int(raw_data[0]),
+                voltage=raw_data[0],
                 level=raw_data[1],
                 charge_power=raw_data[2],
                 discharge_power=raw_data[3],

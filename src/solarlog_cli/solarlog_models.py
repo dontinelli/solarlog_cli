@@ -11,7 +11,7 @@ class BatteryData():
     charge_power: float = 0
     discharge_power: float = 0
     level: float = 0
-    status: int = 0
+    voltage: float = 0
 
 
 @dataclass

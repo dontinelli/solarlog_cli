@@ -6,7 +6,7 @@
       'charge_power': 1074,
       'discharge_power': 0,
       'level': 79,
-      'status': 0,
+      'voltage': 0,
     }),
     'capacity': 27.901119402985074,
     'consumption_ac': 3110,
