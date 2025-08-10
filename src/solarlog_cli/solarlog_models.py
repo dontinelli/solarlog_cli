@@ -5,6 +5,16 @@ from datetime import datetime
 from mashumaro import DataClassDictMixin
 
 @dataclass
+class BatteryData():
+    """Battery Data model."""
+
+    charge_power: float = 0
+    discharge_power: float = 0
+    level: float = 0
+    voltage: float = 0
+
+
+@dataclass
 class InverterData():
     """Inverter Data model."""
 
@@ -46,6 +56,7 @@ class SolarlogData(DataClassDictMixin):
     usage: float | None = None
 
     #extended data
+    battery_data: BatteryData | None = None
     inverter_data: dict[int, InverterData] = field(default_factory=dict)
     production_year: float | None = None
     self_consumption_year: float | None = None
