@@ -90,7 +90,7 @@ class Client:
             _LOGGER.debug("Response to request for user salts: %s",text)
             r_dict: dict[str, Any] = json.loads(text)
 
-            salt: str = r_dict.get('550',dict()).get('107')
+            salt: str = r_dict.get('550',dict()).get('104')
             _LOGGER.debug("Salt to hash pwd: %s",salt)
 
             try:
