@@ -87,9 +87,11 @@ class Client:
             response = await self.execute_http_request(payload)
 
             text = await response.text()
+            _LOGGER.debug("Response to request for user salts: %s",text)
             r_dict: dict[str, Any] = json.loads(text)
 
             salt: str = r_dict.get('550',dict()).get('107')
+            _LOGGER.debug("Salt to hash pwd: %s",salt)
 
             try:
                 if salt != 'QUERY IMPOSSIBLE 000' and salt is not None:
@@ -99,6 +101,7 @@ class Client:
                     text = await response.text()
                     _LOGGER.debug("Response of login with hashed pwd: %s",text)
                     if text.count("FAILED - Password was wrong"):
+                        _LOGGER.debug("Wrong password (hashed)")
                         raise SolarLogAuthenticationError
                     self.password = hashed_password.decode('utf-8')
             except Exception as exception:
