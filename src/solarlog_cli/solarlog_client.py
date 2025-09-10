@@ -71,7 +71,7 @@ class Client:
         response = await self.execute_http_request(payload,"login")
 
         text = await response.text()
-
+        _LOGGER.debug("Response: %s",text)
         if text.count("FAILED - User was wrong"):
             #Response means, that no password is required
             self.password = ""
@@ -84,7 +84,7 @@ class Client:
 
             payload: str = '{ "550": None }'
 
-            response = await self.execute_http_request(payload,"getjp")
+            response = await self.execute_http_request(payload)
 
             salt: str = await json.loads(await response.text()).get('550').get('107')
 
@@ -94,7 +94,7 @@ class Client:
                     payload = f"u=user&p={hashed_password.decode('utf-8')}"
                     response = await self.execute_http_request(payload,"login")
                     text = await response.text()
-                    _LOGGER.debug("response of login with hashed pwd: %s",text)
+                    _LOGGER.debug("Response of login with hashed pwd: %s",text)
                     if text.count("FAILED - Password was wrong"):
                         raise SolarLogAuthenticationError
                     self.password = hashed_password.decode('utf-8')

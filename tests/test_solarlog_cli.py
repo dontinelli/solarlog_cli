@@ -1,7 +1,7 @@
 """Tests for solarlog_cli."""
 
 from aioresponses import aioresponses
-from aiohttp import ClientSession, http_exceptions
+from aiohttp import ClientSession
 
 import pytest
 from syrupy.assertion import SnapshotAssertion
@@ -142,15 +142,17 @@ async def test_login_exceptions(responses: aioresponses) -> None:
     responses.post(
         "http://solarlog.com/login",
         body="FAILED - Password was wrong",
-        repeat=2,
     )
     responses.post(
         "http://solarlog.com/getjp",
         body='{"550":{"100":"ACCESS DENIED","101":"ACCESS DENIED","102":"ACCESS DENIED","103":0,"104":"SALT1","105":"ACCESS DENIED","106":1,"107":"SALT2","108":"ACCESS DENIED","109":0,"110":"SALT3","111":"ACCESS DENIED","112":1}}',
     )
+    responses.post(
+        "http://solarlog.com/login",
+        body="FAILED - Password was wrong",
+    )
     with pytest.raises(SolarLogAuthenticationError):  # type: ignore [call-overload]
         await solarlog_connector.client.login()
-
 
     responses.post(
         "http://solarlog.com/getjp",
