@@ -165,7 +165,7 @@ class Client:
         if text.count('{"QUERY IMPOSSIBLE 000"}'):
             raise SolarLogUpdateError(f"Server response: {text}")
 
-        if text.count("ACCESS DENIED"):
+        if text.count("ACCESS DENIED") and not text.startswith('{"550":{'):
             raise SolarLogAuthenticationError(f"Server response: {text}")
 
         try:

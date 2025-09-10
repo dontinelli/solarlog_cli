@@ -101,6 +101,26 @@ async def test_extended_data_available(
 
     responses.post(
         "http://solarlog.com/getjp",
+        body=load_fixture("device_list_access_denied.json"),
+    )
+    responses.post(
+        "http://solarlog.com/login",
+        body="FAILED - Password was wrong",
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body='{"550":{"100":"ACCESS DENIED","101":"ACCESS DENIED","102":"ACCESS DENIED","103":0,"104":"$2b$08$yw.OTuzhjCHukKjYO0diL.","105":"ACCESS DENIED","106":1,"107":"SALT2","108":"ACCESS DENIED","109":0,"110":"SALT3","111":"ACCESS DENIED","112":1}}',
+    )
+    responses.post(
+        "http://solarlog.com/login",
+        exception=SolarLogAuthenticationError('test'),
+    )
+    solarlog_connector.client.password = "pwd"
+    with pytest.raises(SolarLogAuthenticationError):  # type: ignore [call-overload]
+        await solarlog_connector.test_extended_data_available()
+
+    responses.post(
+        "http://solarlog.com/getjp",
         body=load_fixture("device_list.json"),
     )
     assert await solarlog_connector.test_extended_data_available()
@@ -125,6 +145,30 @@ async def test_login_and_data_retreival(responses: aioresponses) -> None:
         body=load_fixture("basic_data.json"),
     )
     await solarlog_connector.update_data()
+
+    await solarlog_connector.client.close()
+    assert solarlog_connector.client.session.closed
+
+async def test_login_hashed_pwd(responses: aioresponses) -> None:
+    """Test login into Solar-Log."""
+    
+    responses.post(
+        "http://solarlog.com/login",
+        body="FAILED - Password was wrong",
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body='{"550":{"100":"ACCESS DENIED","101":"ACCESS DENIED","102":"ACCESS DENIED","103":0,"104":"$2b$08$yw.OTuzhjCHukKjYO0diL.","105":"ACCESS DENIED","106":1,"107":"SALT2","108":"ACCESS DENIED","109":0,"110":"SALT3","111":"ACCESS DENIED","112":1}}',
+    )    
+    responses.post(
+        "http://solarlog.com/login",
+        headers={"Set-Cookie": "SolarLog=token"},
+        body="SUCCESS - Password was correct, you are now logged in",
+    )
+    solarlog_connector = SolarLogConnector("http://solarlog.com", password="pwd")
+
+    assert await solarlog_connector.login()
+    assert solarlog_connector.client.token == "token"
 
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
