@@ -86,7 +86,10 @@ class Client:
 
             response = await self.execute_http_request(payload)
 
-            salt: str = await json.loads(await response.text()).get('550').get('107')
+            text = await response.text()
+            r_dict = json.loads(text)
+
+            salt: str = await r_dict.get('550').get('107')
 
             try:
                 if salt != 'QUERY IMPOSSIBLE 000' and salt is not None:
