@@ -63,8 +63,12 @@ class SolarLogConnector:
             return False
         except SolarLogAuthenticationError as err:
             #User has no unprotected access to extended API, try to log in
-            _LOGGER.debug("Authentication error: %s", err)
-            self.extended_data = await self.login()
+            _LOGGER.debug("Authentication error during test for extended data: %s", err)
+            try:
+                self.extended_data = await self.login()
+            except SolarLogAuthenticationError as err:
+                _LOGGER.debug("Authentication error during test for extended data: %s", err)
+                raise SolarLogAuthenticationError from err
             _LOGGER.debug("Login successful?: %s", self.extended_data)
         else:
             self.extended_data = True
