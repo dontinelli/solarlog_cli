@@ -1,0 +1,16 @@
+{
+    "550": {
+        "100":"ACCESS DENIED",
+        "101":"ACCESS DENIED",
+        "102":"ACCESS DENIED",
+        "103":0,
+        "104":"$2b$08$yw.OTuzhjCHukKjYO0diL.",
+        "105":"ACCESS DENIED",
+        "106":1,
+        "107":"SALT2",
+        "108":"ACCESS DENIED",
+        "109":0,"110":"SALT3",
+        "111":"ACCESS DENIED",
+        "112":1
+    }
+}

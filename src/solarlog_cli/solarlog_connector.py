@@ -62,13 +62,14 @@ class SolarLogConnector:
             _LOGGER.debug("Error: %s", err)
             return False
         except SolarLogAuthenticationError as err:
-            #User has no unprotected access to extended API, try to log in (login returns false, if no pwd is set)
-            _LOGGER.debug("Authentication error during test for extended data: %s", err)
+            #User has no unprotected access to extended API, try to log in
+            #(login returns false, if no pwd is set)
+            _LOGGER.debug("Auth error during test for extended data: %s", err)
             try:
                 self.extended_data = await self.login()
-            except SolarLogAuthenticationError as err:
-                _LOGGER.debug("Authentication error during login in test for extended data: %s", err)
-                raise SolarLogAuthenticationError from err
+            except SolarLogAuthenticationError as error:
+                _LOGGER.debug("Auth error during login in test for extended data: %s", err)
+                raise SolarLogAuthenticationError from error
             _LOGGER.debug("Login successful?: %s", self.extended_data)
         else:
             self.extended_data = True

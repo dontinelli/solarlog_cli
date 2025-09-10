@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-import bcrypt
 from datetime import datetime
 import json
 import logging
 from typing import Any
 
 from aiohttp import ClientResponse, ClientSession, ClientTimeout
+import bcrypt
 
 from .solarlog_exceptions import (
     SolarLogAuthenticationError,
@@ -79,7 +79,7 @@ class Client:
 
         if text.count("FAILED - Password was wrong"):
             # For newer firmware, login with encrypted PWD is required.
-            # Therefore test with encrypted PWD and only raise authentication error, 
+            # Therefore test with encrypted PWD and only raise authentication error,
             # if login with encrypted PWD fails as well.
 
             payload: str = '{ "550": None }'
@@ -90,7 +90,7 @@ class Client:
             _LOGGER.debug("Response to request for user salts: %s",text)
             r_dict: dict[str, Any] = json.loads(text)
 
-            salt: str = r_dict.get('550',dict()).get('104')
+            salt: str = r_dict.get('550',{}).get('104')
             _LOGGER.debug("Salt to hash pwd: %s",salt)
 
             try:
