@@ -135,17 +135,11 @@ async def test_login_exceptions(responses: aioresponses) -> None:
 
     responses.post(
         "http://solarlog.com/login",
-        body="FAILED - User was wrong",
-    )
-    assert not await solarlog_connector.client.login()
-
-    responses.post(
-        "http://solarlog.com/login",
         body="FAILED - Password was wrong",
     )
     responses.post(
         "http://solarlog.com/getjp",
-        body='{"550":{"100":"ACCESS DENIED","101":"ACCESS DENIED","102":"ACCESS DENIED","103":0,"104":"SALT1","105":"ACCESS DENIED","106":1,"107":"SALT2","108":"ACCESS DENIED","109":0,"110":"SALT3","111":"ACCESS DENIED","112":1}}',
+        body='{"550":{"100":"ACCESS DENIED","101":"ACCESS DENIED","102":"ACCESS DENIED","103":0,"104":"$2b$08$yw.OTuzhjCHukKjYO0diL.","105":"ACCESS DENIED","106":1,"107":"SALT2","108":"ACCESS DENIED","109":0,"110":"SALT3","111":"ACCESS DENIED","112":1}}',
     )
     responses.post(
         "http://solarlog.com/login",
@@ -153,6 +147,12 @@ async def test_login_exceptions(responses: aioresponses) -> None:
     )
     with pytest.raises(SolarLogAuthenticationError):  # type: ignore [call-overload]
         await solarlog_connector.client.login()
+
+    responses.post(
+        "http://solarlog.com/login",
+        body="FAILED - User was wrong",
+    )
+    assert not await solarlog_connector.client.login()
 
     responses.post(
         "http://solarlog.com/getjp",
