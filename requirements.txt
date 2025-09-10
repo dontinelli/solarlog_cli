@@ -1,5 +1,6 @@
 aiohttp>=3.9.5
 aioresponses == 0.7.6
+bcrypt >= 4.3.0
 mashumaro>=3.13
 pytest-aio==1.9.0
 pytest-cov==5.0.0

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import bcrypt
 from datetime import datetime
 import json
 import logging
@@ -70,12 +71,35 @@ class Client:
         response = await self.execute_http_request(payload,"login")
 
         text = await response.text()
-        if text.count("FAILED - Password was wrong"):
-            raise SolarLogAuthenticationError
+
         if text.count("FAILED - User was wrong"):
             #Response means, that no password is required
             self.password = ""
             return False
+
+        if text.count("FAILED - Password was wrong"):
+            # For newer firmware, login with encrypted PWD is required.
+            # Therefore test with encrypted PWD and only raise authentication error, 
+            # if login with encrypted PWD fails as well.
+
+            payload: str = '{ "550": None }'
+
+            response = await self.execute_http_request(payload,"getjp")
+
+            salt: str = await json.loads(await response.text()).get('550').get('107')
+
+            try:
+                if salt != 'QUERY IMPOSSIBLE 000' and salt is not None:
+                    hashed_password = bcrypt.hashpw(self.password.encode(), salt.encode())
+                    payload = f"u=user&p={hashed_password.decode('utf-8')}"
+                    response = await self.execute_http_request(payload,"login")
+                    text = await response.text()
+                    _LOGGER.debug("response of login with hashed pwd: %s",text)
+                    if text.count("FAILED - Password was wrong"):
+                        raise SolarLogAuthenticationError
+                    self.password = hashed_password.decode('utf-8')
+            except Exception as exception:
+                raise SolarLogAuthenticationError from exception
 
         self.token = response.cookies["SolarLog"].value
 
@@ -93,7 +117,7 @@ class Client:
 
         url = f"{self.host}/{path}"
 
-        header = {"Content-Type": "text/html"}
+        header = {"Content-Type": "text/html", "X-SL-CSRF-PROTECTION": "1"}
         if self.token != "":
             header |= {"Cookie": f"SolarLog={self.token}"}
             body = f"token={self.token}; " + body
