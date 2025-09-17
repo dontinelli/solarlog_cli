@@ -1,6 +1,6 @@
 [project]
 name = "solarlog_cli"
-version = "0.5.0"
+version = "0.6.0"
 authors = [
   { name="dontinelli", email="73341522+dontinelli@users.noreply.github.com" },
 ]
@@ -9,6 +9,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
   "aiohttp",
+  "bcrypt>=4.3.0",
   "mashumaro>=3.13",
 ]
 classifiers = [
