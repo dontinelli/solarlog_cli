@@ -82,7 +82,7 @@ class Client:
             # Therefore test with encrypted PWD and only raise authentication error,
             # if login with encrypted PWD fails as well.
 
-            payload: str = '{ "550": None }'
+            payload = '{ "550": None }'
 
             response = await self.execute_http_request(payload)
 
