@@ -58,7 +58,8 @@ async def test_existing_session(
         status=200,
     )
 
-    solarlog_connector = SolarLogConnector("localhost", session=ClientSession())
+    solarlog_connector = SolarLogConnector(
+        "localhost", session=ClientSession())
 
     assert await solarlog_connector.test_connection()
 
@@ -69,12 +70,14 @@ async def test_existing_session(
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
 
+
 async def test_extended_data_available(
     responses: aioresponses,
 ) -> None:
     """Test extended data available."""
 
-    solarlog_connector = SolarLogConnector("http://solarlog.com", password="pwd")
+    solarlog_connector = SolarLogConnector(
+        "http://solarlog.com", password="pwd")
 
     responses.post(
         "http://solarlog.com/getjp",
@@ -101,12 +104,34 @@ async def test_extended_data_available(
 
     responses.post(
         "http://solarlog.com/getjp",
+        body=load_fixture("device_list_access_denied.json"),
+    )
+    responses.post(
+        "http://solarlog.com/login",
+        body="FAILED - Password was wrong",
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("user_salts.json"),
+    )
+    responses.post(
+        "http://solarlog.com/login",
+        exception=SolarLogAuthenticationError('test'),
+    )
+    solarlog_connector.client.password = "pwd"
+    # type: ignore [call-overload]
+    with pytest.raises(SolarLogAuthenticationError):
+        await solarlog_connector.test_extended_data_available()
+
+    responses.post(
+        "http://solarlog.com/getjp",
         body=load_fixture("device_list.json"),
     )
     assert await solarlog_connector.test_extended_data_available()
 
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
+
 
 async def test_login_and_data_retreival(responses: aioresponses) -> None:
     """Test login into Solar-Log."""
@@ -115,7 +140,8 @@ async def test_login_and_data_retreival(responses: aioresponses) -> None:
         headers={"Set-Cookie": "SolarLog=token"},
         body="SUCCESS - Password was correct, you are now logged in",
     )
-    solarlog_connector = SolarLogConnector("http://solarlog.com", password="pwd")
+    solarlog_connector = SolarLogConnector(
+        "http://solarlog.com", password="pwd")
 
     assert await solarlog_connector.login()
     assert solarlog_connector.client.token == "token"
@@ -129,15 +155,52 @@ async def test_login_and_data_retreival(responses: aioresponses) -> None:
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
 
-async def test_login_exceptions(responses: aioresponses) -> None:
-    """Test exceptions at login into Solar-Log."""
-    solarlog_connector = SolarLogConnector("http://solarlog.com", password="pwd")
+
+async def test_login_hashed_pwd(responses: aioresponses) -> None:
+    """Test login into Solar-Log."""
 
     responses.post(
         "http://solarlog.com/login",
         body="FAILED - Password was wrong",
     )
-    with pytest.raises(SolarLogAuthenticationError):  # type: ignore [call-overload]
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("user_salts.json"),
+    )
+    responses.post(
+        "http://solarlog.com/login",
+        headers={"Set-Cookie": "SolarLog=token"},
+        body="SUCCESS - Password was correct, you are now logged in",
+    )
+    solarlog_connector = SolarLogConnector(
+        "http://solarlog.com", password="pwd")
+
+    assert await solarlog_connector.login()
+    assert solarlog_connector.client.token == "token"
+
+    await solarlog_connector.client.close()
+    assert solarlog_connector.client.session.closed
+
+
+async def test_login_exceptions(responses: aioresponses) -> None:
+    """Test exceptions at login into Solar-Log."""
+    solarlog_connector = SolarLogConnector(
+        "http://solarlog.com", password="pwd")
+
+    responses.post(
+        "http://solarlog.com/login",
+        body="FAILED - Password was wrong",
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("user_salts.json"),
+    )
+    responses.post(
+        "http://solarlog.com/login",
+        body="FAILED - Password was wrong",
+    )
+    # type: ignore [call-overload]
+    with pytest.raises(SolarLogAuthenticationError):
         await solarlog_connector.client.login()
 
     responses.post(
@@ -154,6 +217,7 @@ async def test_login_exceptions(responses: aioresponses) -> None:
 
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
+
 
 async def test_update_data(
     responses: aioresponses,
@@ -195,6 +259,7 @@ async def test_update_data(
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
 
+
 async def test_update_data_without_battery(
     responses: aioresponses,
 ) -> None:
@@ -233,6 +298,7 @@ async def test_update_data_without_battery(
 
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
+
 
 @pytest.mark.parametrize(
     ("status", "request_timeout", "error"),
@@ -364,11 +430,13 @@ async def test_enabled_devices(responses: aioresponses) -> None:
         body=load_fixture("device_list.json"),
     )
 
-    solarlog_connector = SolarLogConnector("http://solarlog.com",device_enabled={})
+    solarlog_connector = SolarLogConnector(
+        "http://solarlog.com", device_enabled={})
     assert solarlog_connector.device_enabled() == {}
     assert await solarlog_connector.update_device_list() == {}
 
-    solarlog_connector.set_enabled_devices({0: True, 1: False, 2: False, 3: True})
+    solarlog_connector.set_enabled_devices(
+        {0: True, 1: False, 2: False, 3: True})
 
     assert solarlog_connector.device_enabled(0)
     assert not solarlog_connector.device_enabled(1)

@@ -9,6 +9,7 @@ import logging
 from typing import Any
 
 from aiohttp import ClientResponse, ClientSession, ClientTimeout
+import bcrypt
 
 from .solarlog_exceptions import (
     SolarLogAuthenticationError,
@@ -70,12 +71,41 @@ class Client:
         response = await self.execute_http_request(payload,"login")
 
         text = await response.text()
-        if text.count("FAILED - Password was wrong"):
-            raise SolarLogAuthenticationError
+        _LOGGER.debug("Response: %s",text)
         if text.count("FAILED - User was wrong"):
             #Response means, that no password is required
             self.password = ""
             return False
+
+        if text.count("FAILED - Password was wrong"):
+            # For newer firmware, login with encrypted PWD is required.
+            # Therefore test with encrypted PWD and only raise authentication error,
+            # if login with encrypted PWD fails as well.
+
+            payload = '{ "550": None }'
+
+            response = await self.execute_http_request(payload)
+
+            text = await response.text()
+            _LOGGER.debug("Response to request for user salts: %s",text)
+            r_dict: dict[str, Any] = json.loads(text)
+
+            salt: str = r_dict.get('550',{}).get('104')
+            _LOGGER.debug("Salt to hash pwd: %s",salt)
+
+            try:
+                if salt != 'QUERY IMPOSSIBLE 000' and salt is not None:
+                    hashed_password = bcrypt.hashpw(self.password.encode(), salt.encode())
+                    payload = f"u=user&p={hashed_password.decode('utf-8')}"
+                    response = await self.execute_http_request(payload,"login")
+                    text = await response.text()
+                    _LOGGER.debug("Response of login with hashed pwd: %s",text)
+                    if text.count("FAILED - Password was wrong"):
+                        _LOGGER.debug("Wrong password (hashed)")
+                        raise SolarLogAuthenticationError
+                    self.password = hashed_password.decode('utf-8')
+            except Exception as exception:
+                raise SolarLogAuthenticationError from exception
 
         self.token = response.cookies["SolarLog"].value
 
@@ -93,7 +123,7 @@ class Client:
 
         url = f"{self.host}/{path}"
 
-        header = {"Content-Type": "text/html"}
+        header = {"Content-Type": "text/html", "X-SL-CSRF-PROTECTION": "1"}
         if self.token != "":
             header |= {"Cookie": f"SolarLog={self.token}"}
             body = f"token={self.token}; " + body
@@ -135,7 +165,7 @@ class Client:
         if text.count('{"QUERY IMPOSSIBLE 000"}'):
             raise SolarLogUpdateError(f"Server response: {text}")
 
-        if text.count("ACCESS DENIED"):
+        if text.count("ACCESS DENIED") and not text.startswith('{"550":{'):
             raise SolarLogAuthenticationError(f"Server response: {text}")
 
         try:
