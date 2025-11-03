@@ -22,6 +22,7 @@ from .solarlog_models import SolarlogData
 SOLARLOG_REQUEST_PAYLOAD = '{ "801": { "170": null } }'
 _LOGGER = logging.getLogger(__name__)
 
+
 class Client:
     """Client class to access Solar-Log."""
 
@@ -39,8 +40,8 @@ class Client:
         else:
             self.session = session
 
+        self._hashed_pwd: bool = False
         self._close_session: bool = True
-
 
     async def test_connection(self) -> bool:
         """Test the connection to Solar-Log."""
@@ -68,12 +69,12 @@ class Client:
 
         payload: str = f"u=user&p={self.password}"
 
-        response = await self.execute_http_request(payload,"login")
+        response = await self.execute_http_request(payload, "login")
 
         text = await response.text()
-        _LOGGER.debug("Response: %s",text)
+        _LOGGER.debug("Response: %s", text)
         if text.count("FAILED - User was wrong"):
-            #Response means, that no password is required
+            # Response means, that no password is required
             self.password = ""
             return False
 
@@ -87,19 +88,21 @@ class Client:
             response = await self.execute_http_request(payload)
 
             text = await response.text()
-            _LOGGER.debug("Response to request for user salts: %s",text)
+            _LOGGER.debug("Response to request for user salts: %s", text)
             r_dict: dict[str, Any] = json.loads(text)
 
-            salt: str = r_dict.get('550',{}).get('104')
-            _LOGGER.debug("Salt to hash pwd: %s",salt)
+            salt: str = r_dict.get('550', {}).get('104')
+            _LOGGER.debug("Salt to hash pwd: %s", salt)
 
             try:
                 if salt != 'QUERY IMPOSSIBLE 000' and salt is not None:
-                    hashed_password = bcrypt.hashpw(self.password.encode(), salt.encode())
+                    hashed_password = bcrypt.hashpw(
+                        self.password.encode(), salt.encode())
                     payload = f"u=user&p={hashed_password.decode('utf-8')}"
-                    response = await self.execute_http_request(payload,"login")
+                    response = await self.execute_http_request(payload, "login")
                     text = await response.text()
-                    _LOGGER.debug("Response of login with hashed pwd: %s",text)
+                    _LOGGER.debug(
+                        "Response of login with hashed pwd: %s", text)
                     if text.count("FAILED - Password was wrong"):
                         _LOGGER.debug("Wrong password (hashed)")
                         raise SolarLogAuthenticationError
@@ -107,11 +110,13 @@ class Client:
             except Exception as exception:
                 raise SolarLogAuthenticationError from exception
 
+            self._hashed_pwd = True
+
         self.token = response.cookies["SolarLog"].value
 
-        _LOGGER.debug("response: %s",text)
-        _LOGGER.debug("cookies: %s",response.cookies)
-        _LOGGER.debug("Login successful, token: %s",self.token)
+        _LOGGER.debug("response: %s", text)
+        _LOGGER.debug("cookies: %s", response.cookies)
+        _LOGGER.debug("Login successful, token: %s", self.token)
 
         return True
 
@@ -123,12 +128,12 @@ class Client:
 
         url = f"{self.host}/{path}"
 
-        header = {"Content-Type": "text/html", "X-SL-CSRF-PROTECTION": "1"}
+        header = {"Content-Type": "text/html", "X-SL-CSRF-PROTECTION": "1"} if self._hashed_pwd else {"Content-Type": "application/json"}
         if self.token != "":
             header |= {"Cookie": f"SolarLog={self.token}"}
             body = f"token={self.token}; " + body
 
-        _LOGGER.debug("HTTP-request header: %s",header)
+        _LOGGER.debug("HTTP-request header: %s", header)
         _LOGGER.debug("HTTP-request body: %s", body)
 
         try:
@@ -153,14 +158,14 @@ class Client:
                 {"Content-Type": content_type, "response": text},
             )
 
-        _LOGGER.debug("HTTP-request successful: %s",response)
+        _LOGGER.debug("HTTP-request successful: %s", response)
         return response
 
     async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:
         """Helper function to parse the HTTP response."""
 
         text = await response.text()
-        _LOGGER.debug("Parsing http response: %s",text)
+        _LOGGER.debug("Parsing http response: %s", text)
 
         if text.count('{"QUERY IMPOSSIBLE 000"}'):
             raise SolarLogUpdateError(f"Server response: {text}")
@@ -188,29 +193,30 @@ class Client:
         raw_data = raw_data["801"]["170"]
 
         data = SolarlogData(
-            last_updated = datetime.strptime(raw_data["100"], "%d.%m.%y %H:%M:%S"),
-            power_ac = raw_data["101"],
-            power_dc = raw_data["102"],
-            voltage_ac = raw_data["103"],
-            voltage_dc = raw_data["104"],
-            yield_day = raw_data["105"],
-            yield_yesterday = raw_data["106"],
-            yield_month = raw_data["107"],
-            yield_year = raw_data["108"],
-            yield_total = raw_data["109"],
-            consumption_ac = raw_data["110"],
-            consumption_day = raw_data["111"],
-            consumption_yesterday = raw_data["112"],
-            consumption_month = raw_data["113"],
-            consumption_year = raw_data["114"],
-            consumption_total = raw_data["115"],
-            total_power = raw_data["116"],
+            last_updated=datetime.strptime(
+                raw_data["100"], "%d.%m.%y %H:%M:%S"),
+            power_ac=raw_data["101"],
+            power_dc=raw_data["102"],
+            voltage_ac=raw_data["103"],
+            voltage_dc=raw_data["104"],
+            yield_day=raw_data["105"],
+            yield_yesterday=raw_data["106"],
+            yield_month=raw_data["107"],
+            yield_year=raw_data["108"],
+            yield_total=raw_data["109"],
+            consumption_ac=raw_data["110"],
+            consumption_day=raw_data["111"],
+            consumption_yesterday=raw_data["112"],
+            consumption_month=raw_data["113"],
+            consumption_year=raw_data["114"],
+            consumption_total=raw_data["115"],
+            total_power=raw_data["116"],
         )
 
         return data
 
     async def get_battery_data(self) -> list[float]:
-        """Get power data from Solar-Log"""
+        """Get battery data from Solar-Log"""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "858": null }')
@@ -227,7 +233,8 @@ class Client:
             await self.execute_http_request('{ "782": null }')
         )
 
-        data = {int(key): val for key, val in raw_data["782"].items() if val != "0"}
+        data = {int(key): val for key,
+                val in raw_data["782"].items() if val != "0"}
 
         return data
 
