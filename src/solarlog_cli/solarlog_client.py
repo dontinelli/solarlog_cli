@@ -128,7 +128,10 @@ class Client:
 
         url = f"{self.host}/{path}"
 
-        header = {"Content-Type": "text/html", "X-SL-CSRF-PROTECTION": "1"} if self._hashed_pwd else {"Content-Type": "application/json"}
+        header = {"Content-Type": "text/html"}
+        if self._hashed_pwd:
+            header |=  {"X-SL-CSRF-PROTECTION": "1"}
+
         if self.token != "":
             header |= {"Cookie": f"SolarLog={self.token}"}
             body = f"token={self.token}; " + body
