@@ -31,7 +31,6 @@ class Client:
     def __init__(self, host: str, session: ClientSession | None, password: str = "") -> None:
         self.host: str = host
         self.password: str = password
-        self.token: str = ""
 
         self.request_timeout = 30
 
@@ -112,11 +111,11 @@ class Client:
 
             self._hashed_pwd = True
 
-        self.token = response.cookies["SolarLog"].value
+        self.session.cookie_jar.update_cookies({"SolarLog": response.cookies["SolarLog"].value})
 
         _LOGGER.debug("response: %s", text)
         _LOGGER.debug("cookies: %s", response.cookies)
-        _LOGGER.debug("Login successful, token: %s", self.token)
+        _LOGGER.debug("Login successful, token: %s", response.cookies["SolarLog"].value)
 
         return True
 
@@ -128,13 +127,7 @@ class Client:
 
         url = f"{self.host}/{path}"
 
-        header = {"Content-Type": "text/html"}
-        if self._hashed_pwd:
-            header |=  {"X-SL-CSRF-PROTECTION": "1"}
-
-        if self.token != "":
-            header |= {"Cookie": f"SolarLog={self.token}"}
-            body = f"token={self.token}; " + body
+        header = {"Content-Type": "text/html", "X-SL-CSRF-PROTECTION": "1"}
 
         _LOGGER.debug("HTTP-request header: %s", header)
         _LOGGER.debug("HTTP-request body: %s", body)

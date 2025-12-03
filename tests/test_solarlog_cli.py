@@ -144,7 +144,6 @@ async def test_login_and_data_retreival(responses: aioresponses) -> None:
         "http://solarlog.com", password="pwd")
 
     assert await solarlog_connector.login()
-    assert solarlog_connector.client.token == "token"
 
     responses.post(
         "http://solarlog.com/getjp",
@@ -176,7 +175,6 @@ async def test_login_hashed_pwd(responses: aioresponses) -> None:
         "http://solarlog.com", password="pwd")
 
     assert await solarlog_connector.login()
-    assert solarlog_connector.client.token == "token"
 
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
