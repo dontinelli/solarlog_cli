@@ -167,7 +167,7 @@ class Client:
     async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:
         """Helper function to parse the HTTP response."""
 
-        text = await response.text()
+        text = await response.text(errors="replace")
         _LOGGER.debug("Parsing http response: %s", text)
 
         if text.count('{"QUERY IMPOSSIBLE 000"}'):
