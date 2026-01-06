@@ -1,4 +1,4 @@
-aiohttp>=3.9.5
+aiohttp>=3.13.3
 aioresponses == 0.7.6
 bcrypt >= 4.3.0
 mashumaro>=3.13
