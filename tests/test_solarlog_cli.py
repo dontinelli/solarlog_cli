@@ -302,7 +302,7 @@ async def test_update_energy_data(
     snapshot: SnapshotAssertion
 ) -> None:
     """Test update energy data."""
-    
+
     responses.post(
         "http://solarlog.com/getjp",
         body=load_fixture("extended_data.json"),
