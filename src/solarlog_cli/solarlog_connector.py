@@ -12,7 +12,7 @@ from .solarlog_exceptions import(
     SolarLogConnectionError,
     SolarLogUpdateError,
 )
-from .solarlog_models import BatteryData, InverterData, SolarlogData
+from .solarlog_models import BatteryData, EnergyData, InverterData, SolarlogData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,7 +82,28 @@ class SolarLogConnector:
         return await self.client.login()
 
     async def update_data(self) -> SolarlogData:
-        """Get data from Solar-Log."""
+        """Get all data from Solar-Log."""
+
+        data: SolarlogData = await self.update_basic_data()
+
+        if self.extended_data:
+            energy_data: EnergyData | None = await self.client.get_energy()
+
+            if energy_data is not None:
+                data.production_year = energy_data.production
+                data.self_consumption_year = energy_data.self_consumption
+
+            if self._device_list != {}:
+                data.inverter_data = await self.update_inverter_data()
+
+            data.battery_data = await self.update_battery_data()
+
+            _LOGGER.debug("Extended data updated: %s",data)
+
+        return data
+
+    async def update_basic_data(self) -> SolarlogData:
+        """Get basic data from Solar-Log."""
 
         data: SolarlogData = await self.client.get_basic_data()
 
@@ -94,15 +115,6 @@ class SolarLogConnector:
         data.last_updated = data.last_updated.replace(tzinfo=self.timezone)
 
         _LOGGER.debug("Basic data updated: %s",data)
-        if self.extended_data:
-            data = await self.client.get_energy(data)
-
-            if self._device_list != {}:
-                data.inverter_data = await self.update_inverter_data()
-
-            data.battery_data = await self.update_battery_data()
-
-            _LOGGER.debug("Extended data updated: %s",data)
 
         #calculated values (for downward compatibility)
         data.alternator_loss = data.power_dc - data.power_ac
@@ -119,11 +131,10 @@ class SolarLogConnector:
 
         return data
 
-
-    async def update_battery_data(self) -> BatteryData | None:
+    async def update_battery_data(self, timeout: float | None = None) -> BatteryData | None:
         """Update device specific data."""
 
-        raw_data = await self.client.get_battery_data()
+        raw_data = await self.client.get_battery_data(timeout)
 
         if raw_data == []:
             return None
@@ -139,12 +150,18 @@ class SolarLogConnector:
 
         return battery_data
 
-    async def update_device_list(self) -> dict[int, InverterData]:
+    async def update_energy_data(self, timeout: float | None = None) -> EnergyData | None:
+        """Update energy data (production and self consumption)."""
+
+        return await self.client.get_energy(timeout)
+
+    async def update_device_list(self, timeout: float | None = None) -> dict[int, InverterData]:
         """Update list of devices."""
+
         if not self.extended_data:
             return {}
 
-        devices = await self.client.get_device_list()
+        devices = await self.client.get_device_list(timeout)
 
         self._device_list = {
             key: InverterData(name=value,enabled=self.device(key).enabled)
@@ -154,16 +171,16 @@ class SolarLogConnector:
 
         return self._device_list
 
-    async def update_inverter_data(self) -> dict[int, InverterData]:
+    async def update_inverter_data(self, timeout: float | None = None) -> dict[int, InverterData]:
         """Update device specific data."""
 
-        raw_data = await self.client.get_power_per_inverter()
+        raw_data = await self.client.get_power_per_inverter(timeout)
         for key, value in raw_data.items():
             key = int(key)
             if self._device_list.get(key,InverterData).enabled:
                 self._device_list[key].current_power = float(value)
 
-        raw_data = await self.client.get_energy_per_inverter()
+        raw_data = await self.client.get_energy_per_inverter(timeout)
         for key, value in raw_data.items():
             if self._device_list.get(key,InverterData).enabled:
                 self._device_list[key].consumption_year = float(value)

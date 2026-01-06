@@ -297,6 +297,38 @@ async def test_update_data_without_battery(
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
 
+async def test_update_energy_data(
+    responses: aioresponses,
+    snapshot: SnapshotAssertion
+) -> None:
+    """Test update energy data."""
+
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("extended_data.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body='{"878": "QUERY IMPOSSIBLE 000"}',
+    )
+
+    solarlog_connector = SolarLogConnector(
+        "http://solarlog.com",
+        True,
+        "UTC",
+        {0: True, 1: True, 2: False, 3: True},
+    )
+
+    data = await solarlog_connector.update_energy_data()
+
+    assert data == snapshot
+
+    data = await solarlog_connector.update_energy_data()
+
+    assert data is None
+
+    await solarlog_connector.client.close()
+    assert solarlog_connector.client.session.closed
 
 @pytest.mark.parametrize(
     ("status", "request_timeout", "error"),

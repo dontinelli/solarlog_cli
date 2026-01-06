@@ -87,3 +87,9 @@
     }),
   })
 # ---
+# name: test_update_energy_data[asyncio]
+  dict({
+    'production': 8852462,
+    'self_consumption': 2071,
+  })
+# ---
