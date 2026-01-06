@@ -13,6 +13,12 @@ class BatteryData():
     level: float = 0
     voltage: float = 0
 
+@dataclass
+class EnergyData():
+    """Energy Data model."""
+
+    production: float | None = None
+    self_consumption: float | None = None
 
 @dataclass
 class InverterData():
@@ -21,7 +27,7 @@ class InverterData():
     name: str = ""
     enabled: bool = False
     current_power: float | None = None
-    consumption_year: float | None= None
+    consumption_year: float | None = None
 
 
 @dataclass
