@@ -21,13 +21,26 @@ class EnergyData():
     self_consumption: float | None = None
 
 @dataclass
+class EventData():
+    """Event Data model."""
+
+    end: datetime
+    error: int
+    event: int
+    start: datetime
+
+@dataclass
 class InverterData():
     """Inverter Data model."""
 
     name: str = ""
-    enabled: bool = False
-    current_power: float | None = None
     consumption_year: float | None = None
+    current_power: float | None = None
+    enabled: bool = False
+    errors: dict[int,str] = field(default_factory=dict)
+    events: dict[int,str] = field(default_factory=dict)
+    last_event: EventData | None = None
+    status: str | None = None
 
 
 @dataclass
