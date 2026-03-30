@@ -41,7 +41,7 @@ class Client:
 
         self._hashed_pwd: bool = False
         self._close_session: bool = True
-        self._token = ""
+        self._token = "" #required for older firmware, where cookie is not sufficient
 
     async def test_connection(self) -> bool:
         """Test the connection to Solar-Log."""
