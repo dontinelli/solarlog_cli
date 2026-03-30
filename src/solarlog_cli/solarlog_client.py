@@ -41,6 +41,7 @@ class Client:
 
         self._hashed_pwd: bool = False
         self._close_session: bool = True
+        self._token = ""
 
     async def test_connection(self) -> bool:
         """Test the connection to Solar-Log."""
@@ -113,6 +114,9 @@ class Client:
 
         self.session.cookie_jar.update_cookies(
             {"SolarLog": response.cookies["SolarLog"].value})
+        
+        if not self._hashed_pwd:
+            self._token = response.cookies["SolarLog"].value
 
         _LOGGER.debug("response: %s", text)
         _LOGGER.debug("cookies: %s", response.cookies)
@@ -130,6 +134,9 @@ class Client:
         url = f"{self.host}/{path}"
 
         header = {"Content-Type": "text/html", "X-SL-CSRF-PROTECTION": "1"}
+
+        if self._token != "":
+            body = f"token={self._token}; " + body
 
         _LOGGER.debug("HTTP-request header: %s", header)
         _LOGGER.debug("HTTP-request body: %s", body)
