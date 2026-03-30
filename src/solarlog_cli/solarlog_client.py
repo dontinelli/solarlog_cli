@@ -114,6 +114,9 @@ class Client:
 
         self.session.cookie_jar.update_cookies(
             {"SolarLog": response.cookies["SolarLog"].value})
+        
+        if not self._hashed_pwd:
+            self._token = response.cookies["SolarLog"].value
 
         if not self._hashed_pwd:
             self._token = response.cookies["SolarLog"].value
