@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, date
+from datetime import datetime
 import json
 import logging
 from datetime import UTC, datetime, tzinfo
