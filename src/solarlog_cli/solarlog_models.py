@@ -1,6 +1,6 @@
 """Models for SolarLog."""
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 
 from mashumaro import DataClassDictMixin
 
@@ -76,6 +76,8 @@ class SolarlogData(DataClassDictMixin):
 
     #extended data
     battery_data: BatteryData | None = None
+    firmware_date: date | None = None
+    firmware_version: int | None = None
     inverter_data: dict[int, InverterData] = field(default_factory=dict)
     production_year: float | None = None
     self_consumption_year: float | None = None

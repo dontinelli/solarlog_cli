@@ -330,7 +330,7 @@ async def test_update_data_without_battery(
 
     assert data.battery_data is None
 
-    firmware = await solarlog_connector.update_firmware()
+    firmware = await solarlog_connector.update_firmware_information()
 
     assert firmware[0] == 16974156
 
