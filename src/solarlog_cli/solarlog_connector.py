@@ -171,8 +171,8 @@ class SolarLogConnector:
 
         return self._device_list
 
-    async def update_firmware(self, timeout: float | None = None) -> tuple[str, date]:
-        """Update firmware data."""
+    async def update_firmware_information(self, timeout: float | None = None) -> tuple[str, date]:
+        """Update firmware data (version and relase date)."""
 
         return await self.client.get_firmware(timeout)
 
