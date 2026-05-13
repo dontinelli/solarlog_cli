@@ -164,10 +164,10 @@ class SolarLogConnector:
         devices = await self.client.get_device_list(timeout)
 
         self._device_list = {
-            key: InverterData(name=value[0],enabled=self.device(key).enabled)
+            key: InverterData(name=value[0],enabled=self.device(key).enabled,errors=value[2],events=value[1])
             for key, value in devices.items()
         }
-        _LOGGER.debug("Device list: %s",self._device_list)
+        _LOGGER.debug("Device list updated: %s",self._device_list)
 
         return self._device_list
 

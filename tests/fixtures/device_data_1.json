@@ -4,15 +4,12 @@
             "119":"Device 1",
             "708":{
                 "0":"No Current",
-                "1":" Power",
-                "2":"",
-                "3":""
+                "1":"Power"
             },
             "709":{
-                "0":" ",
-                "1":"No Current",
-                "2":"Power",
-                "3":""
+                "0":"No error",
+                "1":"Connection error",
+                "2":"Unknown error"
             }
         }
     }

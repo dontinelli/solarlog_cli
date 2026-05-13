@@ -107,8 +107,13 @@
       'current_power': None,
       'enabled': True,
       'errors': dict({
+        '0': 'No error',
+        '1': 'Connection error',
+        '2': 'Unknown error',
       }),
       'events': dict({
+        '0': 'No Current',
+        '1': 'Power',
       }),
       'last_event': None,
       'name': 'Device 1',
@@ -119,8 +124,13 @@
       'current_power': None,
       'enabled': False,
       'errors': dict({
+        '0': 'No error',
+        '1': 'Connection error',
+        '2': 'Unknown error',
       }),
       'events': dict({
+        '0': 'No Current',
+        '1': 'Power',
       }),
       'last_event': None,
       'name': 'Device 2',
@@ -131,8 +141,13 @@
       'current_power': None,
       'enabled': False,
       'errors': dict({
+        '0': 'No error',
+        '1': 'Connection error',
+        '2': 'Unknown error',
       }),
       'events': dict({
+        '0': 'No Current',
+        '1': 'Power',
       }),
       'last_event': None,
       'name': 'Device 3',
@@ -143,8 +158,13 @@
       'current_power': None,
       'enabled': True,
       'errors': dict({
+        '0': 'No error',
+        '1': 'Connection error',
+        '2': 'Unknown error',
       }),
       'events': dict({
+        '0': 'No Current',
+        '1': 'Power',
       }),
       'last_event': None,
       'name': 'Device 4',

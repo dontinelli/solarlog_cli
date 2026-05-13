@@ -288,7 +288,7 @@ class Client:
 
         return (fw_version, fw_date)
 
-    async def get_device_list(self, timeout: float | None = None) -> dict[int, tuple[str,str,str]]:
+    async def get_device_list(self, timeout: float | None = None) -> dict[int, tuple[str,dict,dict]]:
         """Get list of all connected devices.
         Return value is a dict with name, possible events and error codes per device."""
 
@@ -298,7 +298,7 @@ class Client:
         )
         raw_data = raw_data["740"]
 
-        device_list: dict[int, tuple[str, str, str]] = {}
+        device_list: dict[int, tuple[str, dict, dict]] = {}
 
         for key, value in raw_data.items():
             if value != "Err":
