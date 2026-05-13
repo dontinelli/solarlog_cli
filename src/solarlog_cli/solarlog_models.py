@@ -33,6 +33,8 @@ class EventData():
 class InverterData():
     """Inverter Data model."""
 
+    # pylint: disable=too-many-instance-attributes
+
     name: str = ""
     consumption_year: float | None = None
     current_power: float | None = None

@@ -278,7 +278,9 @@ class Client:
         """Get firmware data from Solar-Log."""
 
         raw_data: dict = await self.parse_http_response(
-            await self.execute_http_request('{ "801": {"101" : None, "102" : None } }', timeout=timeout)
+            await self.execute_http_request(
+                '{ "801": {"101" : None, "102" : None } }', timeout=timeout
+            )
         )
         fw_version: str = raw_data["801"]["101"]
         fw_date: date = datetime.strptime(
@@ -286,7 +288,7 @@ class Client:
 
         return (fw_version, fw_date)
 
-    async def get_device_list(self, timeout: float | None = None) -> dict[int, tuple[str, str, str]]:
+    async def get_device_list(self, timeout: float | None = None) -> dict[int, tuple[str,str,str]]:
         """Get list of all connected devices.
         Return value is a dict with name, possible events and error codes per device."""
 
@@ -303,11 +305,16 @@ class Client:
                 # get name of the inverter
                 raw_data = await self.parse_http_response(
                     await self.execute_http_request(
-                        f"""{{ "141": {{ "{key}": {{ "119": null, "708": null, "709": null }} }} }}""", timeout=timeout
+                        f"""{{ "141": {{ "{key}": {{ "119": null, "708": null, "709": null }} }} }}""", # pylint: disable=line-too-long
+                        timeout=timeout,
                     )
                 )
                 device_list |= {int(key): (
-                    raw_data["141"][key]["119"], raw_data["141"][key]["708"], raw_data["141"][key]["709"])}
+                        raw_data["141"][key]["119"],
+                        raw_data["141"][key]["708"],
+                        raw_data["141"][key]["709"],
+                    )
+                }
 
         return device_list
 
@@ -322,7 +329,12 @@ class Client:
         print(raw_data)
         events = raw_data["141"][str(device)]["710"]["0"]
 
-        return EventData(start=datetime.fromtimestamp(events[0][0]), end=datetime.fromtimestamp(events[0][1]), event=int(events[0][3]), error=int(events[0][4]))
+        return EventData(
+            start=datetime.fromtimestamp(events[0][0]),
+            end=datetime.fromtimestamp(events[0][1]),
+            event=int(events[0][3]),
+            error=int(events[0][4])
+        )
 
     async def get_status_per_device(self, timeout: float | None = None) -> dict[int, str]:
         """Get inverter status from Solar-Log"""
