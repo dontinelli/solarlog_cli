@@ -124,7 +124,6 @@
       'current_power': None,
       'enabled': False,
       'errors': dict({
-<<<<<<< HEAD
         '0': 'No error',
         '1': 'Connection error',
         '2': 'Unknown error',
@@ -132,10 +131,6 @@
       'events': dict({
         '0': 'No Current',
         '1': 'Power',
-=======
-      }),
-      'events': dict({
->>>>>>> b04adda (First commit)
       }),
       'last_event': None,
       'name': 'Device 2',
@@ -146,7 +141,6 @@
       'current_power': None,
       'enabled': False,
       'errors': dict({
-<<<<<<< HEAD
         '0': 'No error',
         '1': 'Connection error',
         '2': 'Unknown error',
@@ -154,10 +148,6 @@
       'events': dict({
         '0': 'No Current',
         '1': 'Power',
-=======
-      }),
-      'events': dict({
->>>>>>> b04adda (First commit)
       }),
       'last_event': None,
       'name': 'Device 3',
@@ -168,7 +158,6 @@
       'current_power': None,
       'enabled': True,
       'errors': dict({
-<<<<<<< HEAD
         '0': 'No error',
         '1': 'Connection error',
         '2': 'Unknown error',
@@ -176,10 +165,6 @@
       'events': dict({
         '0': 'No Current',
         '1': 'Power',
-=======
-      }),
-      'events': dict({
->>>>>>> b04adda (First commit)
       }),
       'last_event': None,
       'name': 'Device 4',
