@@ -288,7 +288,10 @@ class Client:
 
         return (fw_version, fw_date)
 
-    async def get_device_list(self, timeout: float | None = None) -> dict[int, tuple[str, dict, dict]]:
+    async def get_device_list(
+            self, 
+            timeout: float | None = None
+        ) -> dict[int, tuple[str, dict, dict]]:
         """Get list of all connected devices.
         Return value is a dict with name, possible events and error codes per device."""
 
