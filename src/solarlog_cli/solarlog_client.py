@@ -72,7 +72,7 @@ class Client:
         response = await self.execute_http_request(payload, "login")
 
         text = await response.text()
-        _LOGGER.debug("Response: %s", text)
+        _LOGGER.debug("Response to request for login: %s", text)
         if text.count("FAILED - User was wrong"):
             # Response means, that no password is required
             self.password = ""
@@ -141,8 +141,8 @@ class Client:
         if self._token != "":
             body = f"token={self._token}; " + body
 
-        _LOGGER.debug("HTTP-request header: %s", header)
-        _LOGGER.debug("HTTP-request body: %s", body)
+        # _LOGGER.debug("HTTP-request header: %s", header)
+        # _LOGGER.debug("HTTP-request body: %s", body)
 
         try:
             response = await self.session.post(
@@ -166,14 +166,14 @@ class Client:
                 {"Content-Type": content_type, "response": text},
             )
 
-        _LOGGER.debug("HTTP-request successful: %s", response)
+        # _LOGGER.debug("HTTP-request successful: %s", response)
         return response
 
     async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:
         """Helper function to parse the HTTP response."""
 
         text = await response.text(errors="replace")
-        _LOGGER.debug("Parsing http response: %s", text)
+        # _LOGGER.debug("Parsing http response: %s", text)
 
         if text.count('{"QUERY IMPOSSIBLE 000"}'):
             raise SolarLogUpdateError(f"Server response: {text}")
