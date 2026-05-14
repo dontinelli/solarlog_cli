@@ -1,5 +1,6 @@
 src/solarlog_cli/__pycache__
 tests/__pycache__
+.coverage
 .mypy_cache
 .pytest_cache
 .gitignore
