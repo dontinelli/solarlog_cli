@@ -118,9 +118,6 @@ class Client:
         if not self._hashed_pwd:
             self._token = response.cookies["SolarLog"].value
 
-        if not self._hashed_pwd:
-            self._token = response.cookies["SolarLog"].value
-
         _LOGGER.debug("response: %s", text)
         _LOGGER.debug("cookies: %s", response.cookies)
         _LOGGER.debug("Login successful, token: %s",
