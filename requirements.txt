@@ -1,5 +1,5 @@
 aiohttp>=3.14.1
-aioresponses == 0.7.6
+aiointercept >= 0.1.8
 bcrypt >= 4.3.0
 mashumaro>=3.13
 pytest-aio==1.9.0
