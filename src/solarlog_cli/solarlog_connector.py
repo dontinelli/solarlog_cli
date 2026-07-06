@@ -194,8 +194,8 @@ class SolarLogConnector:
             if self._device_list.get(key,InverterData).enabled:
                 self._device_list[key].consumption_year = float(value)
 
-        raw_data = await self.client.get_status_per_device(timeout)
-        for key, value in raw_data.items():
+        raw_status_data = await self.client.get_status_per_device(timeout)
+        for key, value in raw_status_data.items():
             key = int(key)
             if self._device_list.get(key,InverterData).enabled:
                 self._device_list[key].status = value
