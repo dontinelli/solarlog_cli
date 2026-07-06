@@ -1,6 +1,11 @@
 """Tests for solarlog_cli."""
 
+<<<<<<< HEAD
 import asyncio
+=======
+from aiointercept import aiointercept
+from aiohttp import ClientSession
+>>>>>>> 131a309 (migrate to aiointercept)
 
 import pytest
 from aiohttp import ClientSession
@@ -37,7 +42,11 @@ async def timeout_response(
 )
 async def test_connection(
     responses: aiointercept,
+<<<<<<< HEAD
     response_status: int,
+=======
+    response_status: str,
+>>>>>>> 131a309 (migrate to aiointercept)
     return_value: bool,
 ) -> None:
     """Test connection."""
