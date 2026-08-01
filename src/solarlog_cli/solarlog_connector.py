@@ -23,6 +23,15 @@ class SolarLogConnector:
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-positional-arguments
 
+    async def __aenter__(self) -> "SolarLogConnector":
+        """Enter async context manager."""
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
+        """Exit async context manager."""
+        if not self.client.session.closed:
+            await self.client.close()
+
     def __init__(
         self,
         host: str,
