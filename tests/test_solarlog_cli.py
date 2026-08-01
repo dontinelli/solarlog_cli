@@ -70,9 +70,7 @@ async def test_connection(
     assert solarlog_connector.client.session.closed
 
 
-async def test_existing_session(
-    responses: aiointercept,
-) -> None:
+async def test_existing_session(responses: aiointercept) -> None:
     """Test connection."""
 
     responses.post(
