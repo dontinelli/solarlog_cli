@@ -1,11 +1,8 @@
 """Tests for solarlog_cli."""
 
-<<<<<<< HEAD
 import asyncio
-=======
 from aiointercept import aiointercept
 from aiohttp import ClientSession
->>>>>>> 131a309 (migrate to aiointercept)
 
 import pytest
 from aiohttp import ClientSession
@@ -43,8 +40,12 @@ async def timeout_response(
 async def test_connection(
     responses: aiointercept,
 <<<<<<< HEAD
+<<<<<<< HEAD
     response_status: int,
 =======
+=======
+    solarlog_connector: SolarLogConnector,
+>>>>>>> da465a1 (Add test fixture for solarlog_connector)
     response_status: str,
 >>>>>>> 131a309 (migrate to aiointercept)
     return_value: bool,
@@ -56,8 +57,11 @@ async def test_connection(
         status=response_status,
     )
 
+<<<<<<< HEAD
     solarlog_connector = SolarLogConnector("http://localhost")
 
+=======
+>>>>>>> da465a1 (Add test fixture for solarlog_connector)
     await solarlog_connector.client.close()
     solarlog_connector.client.session = None  # type: ignore [assignment]
     assert await solarlog_connector.test_connection() == return_value
@@ -102,7 +106,11 @@ async def test_extended_data_available(
     solarlog_connector.client.request_timeout = 1
     responses.post(
         "http://solarlog.com/getjp",
+<<<<<<< HEAD
         callback=timeout_response,
+=======
+        exception=True,
+>>>>>>> da465a1 (Add test fixture for solarlog_connector)
     )
     assert not await solarlog_connector.test_extended_data_available()
 
