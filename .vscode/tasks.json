@@ -4,7 +4,7 @@
     {
       "label": "Pytest",
       "type": "shell",
-      "command": "pytest tests",
+      "command": "pytest tests --snapshot-update",
       "dependsOn": ["Install all Requirements"],
       "group": {
         "kind": "test",

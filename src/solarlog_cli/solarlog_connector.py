@@ -1,6 +1,6 @@
 """Connector class to manage access to Solar-Log."""
 
-from datetime import timezone, tzinfo
+from datetime import date, timezone, tzinfo
 import logging
 from zoneinfo import ZoneInfo
 
@@ -22,6 +22,15 @@ class SolarLogConnector:
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-positional-arguments
+
+    async def __aenter__(self) -> "SolarLogConnector":
+        """Enter async context manager."""
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
+        """Exit async context manager."""
+        if not self.client.session.closed:
+            await self.client.close()
 
     def __init__(
         self,
@@ -164,12 +173,21 @@ class SolarLogConnector:
         devices = await self.client.get_device_list(timeout)
 
         self._device_list = {
-            key: InverterData(name=value,enabled=self.device(key).enabled)
+            key: InverterData(
+                name=value[0],
+                enabled=self.device(key).enabled,errors=value[2],
+                events=value[1]
+                )
             for key, value in devices.items()
         }
-        _LOGGER.debug("Device list: %s",self._device_list)
+        _LOGGER.debug("Device list updated: %s",self._device_list)
 
         return self._device_list
+
+    async def update_firmware_information(self, timeout: float | None = None) -> tuple[str, date]:
+        """Update firmware data (version and relase date)."""
+
+        return await self.client.get_firmware(timeout)
 
     async def update_inverter_data(self, timeout: float | None = None) -> dict[int, InverterData]:
         """Update device specific data."""
@@ -184,6 +202,14 @@ class SolarLogConnector:
         for key, value in raw_data.items():
             if self._device_list.get(key,InverterData).enabled:
                 self._device_list[key].consumption_year = float(value)
+
+        raw_status_data = await self.client.get_status_per_device(timeout)
+        for key, value in raw_status_data.items():
+            key = int(key)
+            if self._device_list.get(key,InverterData).enabled:
+                self._device_list[key].status = value
+
+                self._device_list[key].last_event = await self.client.get_device_last_event(key)
 
         _LOGGER.debug("Inverter data updated: %s",self._device_list)
 

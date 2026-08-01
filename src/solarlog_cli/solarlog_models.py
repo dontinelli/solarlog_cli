@@ -1,6 +1,6 @@
 """Models for SolarLog."""
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 
 from mashumaro import DataClassDictMixin
 
@@ -21,13 +21,28 @@ class EnergyData():
     self_consumption: float | None = None
 
 @dataclass
+class EventData():
+    """Event Data model."""
+
+    end: datetime
+    error: int
+    event: int
+    start: datetime
+
+@dataclass
 class InverterData():
     """Inverter Data model."""
 
+    # pylint: disable=too-many-instance-attributes
+
     name: str = ""
-    enabled: bool = False
-    current_power: float | None = None
     consumption_year: float | None = None
+    current_power: float | None = None
+    enabled: bool = False
+    errors: dict[int,str] = field(default_factory=dict)
+    events: dict[int,str] = field(default_factory=dict)
+    last_event: EventData | None = None
+    status: str | None = None
 
 
 @dataclass
@@ -63,6 +78,8 @@ class SolarlogData(DataClassDictMixin):
 
     #extended data
     battery_data: BatteryData | None = None
+    firmware_date: date | None = None
+    firmware_version: str | None = None
     inverter_data: dict[int, InverterData] = field(default_factory=dict)
     production_year: float | None = None
     self_consumption_year: float | None = None

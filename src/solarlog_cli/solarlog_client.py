@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, date
 import json
 import logging
 from typing import Any
@@ -17,7 +17,7 @@ from .solarlog_exceptions import (
     SolarLogUpdateError,
 )
 
-from .solarlog_models import EnergyData, SolarlogData
+from .solarlog_models import EnergyData, EventData, SolarlogData
 
 SOLARLOG_REQUEST_PAYLOAD = '{ "801": { "170": null } }'
 _LOGGER = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ class Client:
         response = await self.execute_http_request(payload, "login")
 
         text = await response.text()
-        _LOGGER.debug("Response: %s", text)
+        _LOGGER.debug("Response to request for login: %s", text)
         if text.count("FAILED - User was wrong"):
             # Response means, that no password is required
             self.password = ""
@@ -125,7 +125,7 @@ class Client:
 
         return True
 
-    async def execute_http_request(self, body: str, path: str = "getjp", timeout: float | None = None) -> ClientResponse: # pylint: disable=line-too-long
+    async def execute_http_request(self, body: str, path: str = "getjp", timeout: float | None = None) -> ClientResponse:  # pylint: disable=line-too-long
         """Helper function to process the HTTP Get call."""
         if self.session is None:
             self.session = ClientSession()
@@ -138,8 +138,8 @@ class Client:
         if self._token != "":
             body = f"token={self._token}; " + body
 
-        _LOGGER.debug("HTTP-request header: %s", header)
-        _LOGGER.debug("HTTP-request body: %s", body)
+        # _LOGGER.debug("HTTP-request header: %s", header)
+        # _LOGGER.debug("HTTP-request body: %s", body)
 
         try:
             response = await self.session.post(
@@ -163,14 +163,14 @@ class Client:
                 {"Content-Type": content_type, "response": text},
             )
 
-        _LOGGER.debug("HTTP-request successful: %s", response)
+        # _LOGGER.debug("HTTP-request successful: %s", response)
         return response
 
     async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:
         """Helper function to parse the HTTP response."""
 
         text = await response.text(errors="replace")
-        _LOGGER.debug("Parsing http response: %s", text)
+        # _LOGGER.debug("Parsing http response: %s", text)
 
         if text.count('{"QUERY IMPOSSIBLE 000"}'):
             raise SolarLogUpdateError(f"Server response: {text}")
@@ -221,7 +221,7 @@ class Client:
         return data
 
     async def get_battery_data(self, timeout: float | None = None) -> list[float]:
-        """Get battery data from Solar-Log"""
+        """Get battery data from Solar-Log."""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "858": null }', timeout=timeout)
@@ -232,7 +232,7 @@ class Client:
         return data
 
     async def get_power_per_inverter(self, timeout: float | None = None) -> dict[int, float]:
-        """Get power data from Solar-Log"""
+        """Get power data from Solar-Log."""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "782": null }', timeout=timeout)
@@ -244,7 +244,7 @@ class Client:
         return data
 
     async def get_energy_per_inverter(self, timeout: float | None = None) -> dict[int, float]:
-        """Get power data from Solar-Log"""
+        """Get power data from Solar-Log."""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "854": null }', timeout=timeout)
@@ -260,7 +260,7 @@ class Client:
         return data
 
     async def get_energy(self, timeout: float | None = None) -> EnergyData | None:
-        """Get energy data from Solar-Log"""
+        """Get energy data from Solar-Log."""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "878": null }', timeout=timeout)
@@ -274,8 +274,26 @@ class Client:
 
         return None
 
-    async def get_device_list(self, timeout: float | None = None) -> dict[int, str]:
-        """Get list of all connected devices."""
+    async def get_firmware(self, timeout: float | None = None) -> tuple[str, date]:
+        """Get firmware data from Solar-Log."""
+
+        raw_data: dict = await self.parse_http_response(
+            await self.execute_http_request(
+                '{ "801": {"101" : None, "102" : None } }', timeout=timeout
+            )
+        )
+        fw_version: str = raw_data["801"]["101"]
+        fw_date: date = datetime.strptime(
+            raw_data["801"]["102"], "%d.%m.%Y").date()
+
+        return (fw_version, fw_date)
+
+    async def get_device_list(
+            self,
+            timeout: float | None = None
+        ) -> dict[int, tuple[str, dict, dict]]:
+        """Get list of all connected devices.
+        Return value is a dict with name, possible events and error codes per device."""
 
         # get list of all inverters connected to Solar-Log
         raw_data: dict = await self.parse_http_response(
@@ -283,19 +301,53 @@ class Client:
         )
         raw_data = raw_data["740"]
 
-        device_list: dict[int, str] = {}
+        device_list: dict[int, tuple[str, dict, dict]] = {}
 
         for key, value in raw_data.items():
             if value != "Err":
                 # get name of the inverter
-                raw_data = await self.parse_http_response(
-                    await self.execute_http_request(
-                        f"""{{ "141": {{ "{key}": {{ "119": null }} }} }}""", timeout=timeout
-                    )
+                query = (
+                    f'{{ "141": {{ "{key}": {{ "119": null, "708": null, '
+                    f'"709": null }} }} }}'
                 )
-                device_list |= {int(key): raw_data["141"][key]["119"]}
+                raw_data = await self.parse_http_response(
+                    await self.execute_http_request(query, timeout=timeout)
+                )
+                device_list |= {int(key): (
+                        raw_data["141"][key]["119"],
+                        raw_data["141"][key]["708"],
+                        raw_data["141"][key]["709"],
+                    )
+                }
 
         return device_list
+
+    async def get_device_last_event(self, device: int, timeout: float | None = None) -> EventData:
+        """Get list of last event/error of a device."""
+
+        raw_data = await self.parse_http_response(
+            await self.execute_http_request(
+                f"""{{ "141": {{ "{device}": {{ "710": null }} }} }}""", timeout=timeout
+            )
+        )
+        print(raw_data)
+        events = raw_data["141"][str(device)]["710"]["0"]
+
+        return EventData(
+            start=datetime.fromtimestamp(events[0][0]),
+            end=datetime.fromtimestamp(events[0][1]),
+            event=int(events[0][3]),
+            error=int(events[0][4])
+        )
+
+    async def get_status_per_device(self, timeout: float | None = None) -> dict[int, str]:
+        """Get inverter status from Solar-Log"""
+
+        raw_data: dict = await self.parse_http_response(
+            await self.execute_http_request('{ "608": null }', timeout=timeout)
+        )
+
+        return raw_data["608"]
 
     async def close(self) -> None:
         """Close open client session."""

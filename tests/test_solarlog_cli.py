@@ -1,6 +1,6 @@
 """Tests for solarlog_cli."""
 
-from aioresponses import aioresponses
+from aiointercept import aiointercept
 from aiohttp import ClientSession
 
 import pytest
@@ -25,23 +25,23 @@ from . import load_fixture
     ],
 )
 async def test_connection(
-    responses: aioresponses,
+    responses: aiointercept,
+    solarlog_connector: SolarLogConnector,
     response_status: str,
     return_value: bool,
 ) -> None:
     """Test connection."""
+
     responses.post(
-        "localhost/getjp",
+        "http://solarlog.com/getjp",
         status=response_status,
     )
-
-    solarlog_connector = SolarLogConnector("localhost")
 
     await solarlog_connector.client.close()
     solarlog_connector.client.session = None  # type: ignore [assignment]
     assert await solarlog_connector.test_connection() == return_value
 
-    assert solarlog_connector.host == "localhost"
+    assert solarlog_connector.host == "http://solarlog.com"
 
     assert solarlog_connector.client.session is not None
     assert not solarlog_connector.client.session.closed
@@ -49,21 +49,20 @@ async def test_connection(
     assert solarlog_connector.client.session.closed
 
 
-async def test_existing_session(
-    responses: aioresponses,
-) -> None:
+async def test_existing_session(responses: aiointercept) -> None:
     """Test connection."""
+
     responses.post(
-        "localhost/getjp",
+        "http://solarlog.com/getjp",
         status=200,
     )
 
     solarlog_connector = SolarLogConnector(
-        "localhost", session=ClientSession())
+        "http://solarlog.com", session=ClientSession())
 
     assert await solarlog_connector.test_connection()
 
-    assert solarlog_connector.host == "localhost"
+    assert solarlog_connector.host == "http://solarlog.com"
 
     assert solarlog_connector.client.session is not None
     assert not solarlog_connector.client.session.closed
@@ -72,7 +71,7 @@ async def test_existing_session(
 
 
 async def test_extended_data_available(
-    responses: aioresponses,
+    responses: aiointercept,
 ) -> None:
     """Test extended data available."""
 
@@ -81,7 +80,7 @@ async def test_extended_data_available(
 
     responses.post(
         "http://solarlog.com/getjp",
-        timeout=True,
+        exception=True,
     )
     assert not await solarlog_connector.test_extended_data_available()
 
@@ -133,7 +132,7 @@ async def test_extended_data_available(
     assert solarlog_connector.client.session.closed
 
 
-async def test_login_and_data_retreival(responses: aioresponses) -> None:
+async def test_login_and_data_retreival(responses: aiointercept) -> None:
     """Test login into Solar-Log."""
     responses.post(
         "http://solarlog.com/login",
@@ -155,7 +154,7 @@ async def test_login_and_data_retreival(responses: aioresponses) -> None:
     assert solarlog_connector.client.session.closed
 
 
-async def test_login_hashed_pwd(responses: aioresponses) -> None:
+async def test_login_hashed_pwd(responses: aiointercept) -> None:
     """Test login into Solar-Log."""
 
     responses.post(
@@ -180,7 +179,7 @@ async def test_login_hashed_pwd(responses: aioresponses) -> None:
     assert solarlog_connector.client.session.closed
 
 
-async def test_login_exceptions(responses: aioresponses) -> None:
+async def test_login_exceptions(responses: aiointercept) -> None:
     """Test exceptions at login into Solar-Log."""
     solarlog_connector = SolarLogConnector(
         "http://solarlog.com", password="pwd")
@@ -218,7 +217,7 @@ async def test_login_exceptions(responses: aioresponses) -> None:
 
 
 async def test_update_data(
-    responses: aioresponses,
+    responses: aiointercept,
     snapshot: SnapshotAssertion
 ) -> None:
     """Test update data."""
@@ -237,6 +236,22 @@ async def test_update_data(
     responses.post(
         "http://solarlog.com/getjp",
         body=load_fixture("energy_per_inverter.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_status.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_1.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_2.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_4.json"),
     )
     responses.post(
         "http://solarlog.com/getjp",
@@ -259,7 +274,7 @@ async def test_update_data(
 
 
 async def test_update_data_without_battery(
-    responses: aioresponses,
+    responses: aiointercept,
 ) -> None:
     """Test update data."""
     responses.post(
@@ -280,7 +295,31 @@ async def test_update_data_without_battery(
     )
     responses.post(
         "http://solarlog.com/getjp",
+        body=load_fixture("device_status.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_1.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_2.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_4.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
         body=load_fixture("battery_data_without_battery.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("firmware_data.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("firmware_data.json"),
     )
 
     solarlog_connector = SolarLogConnector(
@@ -294,11 +333,15 @@ async def test_update_data_without_battery(
 
     assert data.battery_data is None
 
+    firmware = await solarlog_connector.update_firmware_information()
+
+    assert firmware[0] == 16974156
+
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
 
 async def test_update_energy_data(
-    responses: aioresponses,
+    responses: aiointercept,
     snapshot: SnapshotAssertion
 ) -> None:
     """Test update energy data."""
@@ -338,7 +381,7 @@ async def test_update_energy_data(
     ],
 )
 async def test_update_data_exceptions(
-    responses: aioresponses,
+    responses: aiointercept,
     status: int,
     request_timeout: bool,
     error: SolarLogError,
@@ -367,7 +410,7 @@ async def test_update_data_exceptions(
 
 
 async def test_update_data_with_data_exceptions(
-    responses: aioresponses,
+    responses: aiointercept,
 ) -> None:
     """Test update data with exceptions due to data."""
     responses.post(
@@ -408,7 +451,7 @@ async def test_update_data_with_data_exceptions(
 
 
 async def test_update_device_list(
-    responses: aioresponses,
+    responses: aiointercept,
     snapshot: SnapshotAssertion
 ) -> None:
     """Test update device list."""
@@ -453,7 +496,7 @@ async def test_update_device_list(
     assert solarlog_connector.client.session.closed
 
 
-async def test_enabled_devices(responses: aioresponses) -> None:
+async def test_enabled_devices(responses: aiointercept) -> None:
     """Test enabled devices."""
     responses.post(
         "http://solarlog.com/getjp",
