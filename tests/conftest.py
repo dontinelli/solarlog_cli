@@ -1,11 +1,11 @@
 """Tests for solarlog_cli - configurations."""
 
-from typing import Generator
+from collections.abc import AsyncGenerator
 
-from aioresponses import aioresponses
 import pytest
+from aiointercept import aiointercept
 
-from syrupy import SnapshotAssertion
+from syrupy.assertion import SnapshotAssertion
 
 from .syrupy import SolarlogSnapshotExtension
 
@@ -16,7 +16,7 @@ def snapshot_assertion(snapshot: SnapshotAssertion) -> SnapshotAssertion:
     return snapshot.use_extension(SolarlogSnapshotExtension)
 
 @pytest.fixture(name="responses")
-def aioresponses_fixture() -> Generator[aioresponses, None, None]:
-    """Return aioresponses fixture."""
-    with aioresponses() as mocked_responses:
+async def aiointercept_fixture() -> AsyncGenerator[aiointercept, None]:
+    """Return aiointercept fixture."""
+    async with aiointercept(mock_external_urls=True) as mocked_responses:
         yield mocked_responses

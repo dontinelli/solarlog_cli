@@ -1,5 +1,6 @@
 """Tests for solarlog_cli."""
 
+import asyncio
 from aiointercept import aiointercept
 from aiohttp import ClientSession
 
@@ -30,18 +31,19 @@ async def test_connection(
     return_value: bool,
 ) -> None:
     """Test connection."""
+
     responses.post(
-        "localhost/getjp",
+        "http://solarlog.com/getjp",
         status=response_status,
     )
 
-    solarlog_connector = SolarLogConnector("localhost")
+    solarlog_connector = SolarLogConnector("http://solarlog.com")
 
     await solarlog_connector.client.close()
     solarlog_connector.client.session = None  # type: ignore [assignment]
     assert await solarlog_connector.test_connection() == return_value
 
-    assert solarlog_connector.host == "localhost"
+    assert solarlog_connector.host == "http://solarlog.com"
 
     assert solarlog_connector.client.session is not None
     assert not solarlog_connector.client.session.closed
@@ -49,21 +51,20 @@ async def test_connection(
     assert solarlog_connector.client.session.closed
 
 
-async def test_existing_session(
-    responses: aiointercept,
-) -> None:
+async def test_existing_session(responses: aiointercept) -> None:
     """Test connection."""
+
     responses.post(
-        "localhost/getjp",
+        "http://solarlog.com/getjp",
         status=200,
     )
 
     solarlog_connector = SolarLogConnector(
-        "localhost", session=ClientSession())
+        "http://solarlog.com", session=ClientSession())
 
     assert await solarlog_connector.test_connection()
 
-    assert solarlog_connector.host == "localhost"
+    assert solarlog_connector.host == "http://solarlog.com"
 
     assert solarlog_connector.client.session is not None
     assert not solarlog_connector.client.session.closed
@@ -81,7 +82,7 @@ async def test_extended_data_available(
 
     responses.post(
         "http://solarlog.com/getjp",
-        timeout=True,
+        exception=asyncio.TimeoutError,
     )
     assert not await solarlog_connector.test_extended_data_available()
 
