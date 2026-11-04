@@ -26,6 +26,7 @@ class Client:
     """Client class to access Solar-Log."""
 
     # pylint: disable=too-many-positional-arguments
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(
             self, host: str, session: ClientSession | None, password: str = "", tz: str = ""
