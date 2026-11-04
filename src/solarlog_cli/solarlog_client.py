@@ -27,7 +27,10 @@ class Client:
 
     # pylint: disable=too-many-positional-arguments
 
-    def __init__(self, host: str, session: ClientSession | None, password: str = "", tz: str = "") -> None:
+    def __init__(
+            self, host: str, session: ClientSession | None, password: str = "", tz: str = ""
+        ) -> None:
+
         self.host: str = host
         self.password: str = password
         self.timezone: tzinfo = UTC if tz == "" else ZoneInfo(tz)

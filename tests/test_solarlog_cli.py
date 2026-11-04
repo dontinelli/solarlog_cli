@@ -1,11 +1,8 @@
 """Tests for solarlog_cli."""
 
-from aioresponses import aioresponses
-from aiohttp import ClientSession
-
 import pytest
-from syrupy.assertion import SnapshotAssertion
-
+from aiohttp import ClientSession
+from aioresponses import aioresponses
 from solarlog_cli.solarlog_connector import SolarLogConnector
 from solarlog_cli.solarlog_exceptions import (
     SolarLogAuthenticationError,
@@ -13,6 +10,7 @@ from solarlog_cli.solarlog_exceptions import (
     SolarLogError,
     SolarLogUpdateError,
 )
+from syrupy.assertion import SnapshotAssertion
 
 from . import load_fixture
 
