@@ -1,9 +1,8 @@
 """Tests for solarlog_cli."""
 
-from aioresponses import aioresponses
-from aiohttp import ClientSession
-
 import pytest
+from aiohttp import ClientSession
+from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 
 from solarlog_cli.solarlog_connector import SolarLogConnector

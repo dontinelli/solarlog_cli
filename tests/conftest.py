@@ -1,11 +1,10 @@
 """Tests for solarlog_cli - configurations."""
 
-from typing import Generator
+from collections.abc import Generator
 
-from aioresponses import aioresponses
 import pytest
-
-from syrupy import SnapshotAssertion
+from aioresponses import aioresponses
+from syrupy.assertion import SnapshotAssertion
 
 from .syrupy import SolarlogSnapshotExtension
 
