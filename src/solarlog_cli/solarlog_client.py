@@ -6,10 +6,11 @@ import asyncio
 from datetime import datetime, date
 import json
 import logging
+from datetime import datetime
 from typing import Any
 
-from aiohttp import ClientResponse, ClientSession, ClientTimeout
 import bcrypt
+from aiohttp import ClientResponse, ClientSession, ClientTimeout
 
 from .solarlog_exceptions import (
     SolarLogAuthenticationError,
