@@ -4,8 +4,9 @@ from datetime import date, datetime
 
 from mashumaro import DataClassDictMixin
 
+
 @dataclass
-class BatteryData():
+class BatteryData:
     """Battery Data model."""
 
     charge_power: float = 0
@@ -14,7 +15,7 @@ class BatteryData():
     voltage: float = 0
 
 @dataclass
-class EnergyData():
+class EnergyData:
     """Energy Data model."""
 
     production: float | None = None
