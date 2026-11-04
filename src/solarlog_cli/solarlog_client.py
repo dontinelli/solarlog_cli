@@ -3,20 +3,19 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 from typing import Any
 
-from aiohttp import ClientResponse, ClientSession, ClientTimeout
 import bcrypt
+from aiohttp import ClientResponse, ClientSession, ClientTimeout
 
 from .solarlog_exceptions import (
     SolarLogAuthenticationError,
     SolarLogConnectionError,
     SolarLogUpdateError,
 )
-
 from .solarlog_models import EnergyData, SolarlogData
 
 SOLARLOG_REQUEST_PAYLOAD = '{ "801": { "170": null } }'
@@ -72,7 +71,7 @@ class Client:
         response = await self.execute_http_request(payload, "login")
 
         text = await response.text()
-        _LOGGER.debug("Response: %s", text)
+        _LOGGER.debug("Response to request for login: %s", text)
         if text.count("FAILED - User was wrong"):
             # Response means, that no password is required
             self.password = ""
@@ -138,8 +137,8 @@ class Client:
         if self._token != "":
             body = f"token={self._token}; " + body
 
-        _LOGGER.debug("HTTP-request header: %s", header)
-        _LOGGER.debug("HTTP-request body: %s", body)
+        #_LOGGER.debug("HTTP-request header: %s", header)
+        #_LOGGER.debug("HTTP-request body: %s", body)
 
         try:
             response = await self.session.post(
@@ -163,14 +162,14 @@ class Client:
                 {"Content-Type": content_type, "response": text},
             )
 
-        _LOGGER.debug("HTTP-request successful: %s", response)
+        #_LOGGER.debug("HTTP-request successful: %s", response)
         return response
 
     async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:
         """Helper function to parse the HTTP response."""
 
         text = await response.text(errors="replace")
-        _LOGGER.debug("Parsing http response: %s", text)
+        #_LOGGER.debug("Parsing http response: %s", text)
 
         if text.count('{"QUERY IMPOSSIBLE 000"}'):
             raise SolarLogUpdateError(f"Server response: {text}")
@@ -221,7 +220,7 @@ class Client:
         return data
 
     async def get_battery_data(self, timeout: float | None = None) -> list[float]:
-        """Get battery data from Solar-Log"""
+        """Get battery data from Solar-Log."""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "858": null }', timeout=timeout)
@@ -232,7 +231,7 @@ class Client:
         return data
 
     async def get_power_per_inverter(self, timeout: float | None = None) -> dict[int, float]:
-        """Get power data from Solar-Log"""
+        """Get power data from Solar-Log."""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "782": null }', timeout=timeout)
@@ -244,7 +243,7 @@ class Client:
         return data
 
     async def get_energy_per_inverter(self, timeout: float | None = None) -> dict[int, float]:
-        """Get power data from Solar-Log"""
+        """Get power data from Solar-Log."""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "854": null }', timeout=timeout)
@@ -260,7 +259,7 @@ class Client:
         return data
 
     async def get_energy(self, timeout: float | None = None) -> EnergyData | None:
-        """Get energy data from Solar-Log"""
+        """Get energy data from Solar-Log."""
 
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "878": null }', timeout=timeout)
