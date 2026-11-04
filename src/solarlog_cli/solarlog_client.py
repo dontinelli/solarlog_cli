@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
-from datetime import datetime
+from datetime import UTC, datetime, tzinfo
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import bcrypt
 from aiohttp import ClientResponse, ClientSession, ClientTimeout
@@ -27,9 +27,10 @@ class Client:
 
     # pylint: disable=too-many-positional-arguments
 
-    def __init__(self, host: str, session: ClientSession | None, password: str = "") -> None:
+    def __init__(self, host: str, session: ClientSession | None, password: str = "", tz: str = "") -> None:
         self.host: str = host
         self.password: str = password
+        self.timezone: tzinfo = UTC if tz == "" else ZoneInfo(tz)
 
         self.request_timeout = 30
 
@@ -40,7 +41,7 @@ class Client:
 
         self._hashed_pwd: bool = False
         self._close_session: bool = True
-        self._token = "" #required for older firmware, where cookie is not sufficient
+        self._token = ""  # required for older firmware, where cookie is not sufficient
 
     async def test_connection(self) -> bool:
         """Test the connection to Solar-Log."""
@@ -55,10 +56,7 @@ class Client:
             timeout=ClientTimeout(total=self.request_timeout)
         )
 
-        if response.status == 200:
-            return True
-
-        return False
+        return response.status == 200
 
     async def login(self) -> bool:
         """Test the connection to Solar-Log."""
@@ -124,7 +122,7 @@ class Client:
 
         return True
 
-    async def execute_http_request(self, body: str, path: str = "getjp", timeout: float | None = None) -> ClientResponse: # pylint: disable=line-too-long
+    async def execute_http_request(self, body: str, path: str = "getjp", timeout: float | None = None) -> ClientResponse:  # pylint: disable=line-too-long
         """Helper function to process the HTTP Get call."""
         if self.session is None:
             self.session = ClientSession()
@@ -137,8 +135,8 @@ class Client:
         if self._token != "":
             body = f"token={self._token}; " + body
 
-        #_LOGGER.debug("HTTP-request header: %s", header)
-        #_LOGGER.debug("HTTP-request body: %s", body)
+        # _LOGGER.debug("HTTP-request header: %s", header)
+        # _LOGGER.debug("HTTP-request body: %s", body)
 
         try:
             response = await self.session.post(
@@ -147,7 +145,7 @@ class Client:
                 data=body,
                 timeout=ClientTimeout(total=timeout or self.request_timeout),
             )
-        except asyncio.TimeoutError as exception:
+        except TimeoutError as exception:
             msg = f"Timeout occurred while connecting to Solar-Log at {self.host}"
             raise SolarLogConnectionError(msg) from exception
 
@@ -162,14 +160,14 @@ class Client:
                 {"Content-Type": content_type, "response": text},
             )
 
-        #_LOGGER.debug("HTTP-request successful: %s", response)
+        # _LOGGER.debug("HTTP-request successful: %s", response)
         return response
 
     async def parse_http_response(self, response: ClientResponse) -> dict[str, Any]:
         """Helper function to parse the HTTP response."""
 
         text = await response.text(errors="replace")
-        #_LOGGER.debug("Parsing http response: %s", text)
+        # _LOGGER.debug("Parsing http response: %s", text)
 
         if text.count('{"QUERY IMPOSSIBLE 000"}'):
             raise SolarLogUpdateError(f"Server response: {text}")
@@ -198,7 +196,7 @@ class Client:
 
         data = SolarlogData(
             last_updated=datetime.strptime(
-                raw_data["100"], "%d.%m.%y %H:%M:%S"),
+                raw_data["100"], "%d.%m.%y %H:%M:%S").astimezone(self.timezone),
             power_ac=raw_data["101"],
             power_dc=raw_data["102"],
             voltage_ac=raw_data["103"],

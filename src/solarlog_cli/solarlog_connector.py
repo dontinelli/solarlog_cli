@@ -1,8 +1,6 @@
 """Connector class to manage access to Solar-Log."""
 
 import logging
-from datetime import UTC, tzinfo
-from zoneinfo import ZoneInfo
 
 from aiohttp import ClientSession
 
@@ -32,7 +30,7 @@ class SolarLogConnector:
         password: str = "",
         session: ClientSession | None = None,
     ):
-        self.client = Client(host, session, password)
+        self.client = Client(host, session, password, tz)
         self.extended_data: bool = extended_data
 
         self._device_list: dict[int, InverterData] = {}
@@ -42,7 +40,6 @@ class SolarLogConnector:
         for key, value in device_enabled.items():
             self._device_list |= {key: InverterData(enabled=value)}
 
-        self.timezone: tzinfo = UTC if tz == "" else ZoneInfo(tz)
 
     async def test_connection(self) -> bool:
         """Test if connection to Solar-Log works."""
@@ -111,8 +108,6 @@ class SolarLogConnector:
             raise SolarLogUpdateError(
                 "Invalid data returned (can happen after Solarlog restart)."
             )
-
-        data.last_updated = data.last_updated.replace(tzinfo=self.timezone)
 
         _LOGGER.debug("Basic data updated: %s",data)
 
