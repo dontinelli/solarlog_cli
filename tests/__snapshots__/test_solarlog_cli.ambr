@@ -1,5 +1,5 @@
 # serializer version: 1
-# name: test_update_data[asyncio]
+# name: test_update_data
   dict({
     'alternator_loss': 100,
     'battery_data': dict({
@@ -59,7 +59,7 @@
     'yield_yesterday': 12955,
   })
 # ---
-# name: test_update_device_list[asyncio]
+# name: test_update_device_list
   dict({
     0: dict({
       'consumption_year': None,
@@ -87,7 +87,7 @@
     }),
   })
 # ---
-# name: test_update_energy_data[asyncio]
+# name: test_update_energy_data
   dict({
     'production': 8852462,
     'self_consumption': 2071,
