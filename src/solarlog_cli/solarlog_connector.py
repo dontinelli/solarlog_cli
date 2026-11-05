@@ -1,9 +1,9 @@
 """Connector class to manage access to Solar-Log."""
 
 import logging
+from datetime import date
 
 from aiohttp import ClientSession
-from datetime import date
 
 from .solarlog_client import Client
 from .solarlog_exceptions import (
@@ -193,10 +193,10 @@ class SolarLogConnector:
                 self._device_list[key].consumption_year = float(value)
 
         raw_status_data = await self.client.get_status_per_device(timeout)
-        for key, value in raw_status_data.items():
+        for key, str_value in raw_status_data.items():
             key = int(key)
             if self._device_list.get(key,InverterData).enabled:
-                self._device_list[key].status = value
+                self._device_list[key].status = str_value
 
                 self._device_list[key].last_event = await self.client.get_device_last_event(key)
 
