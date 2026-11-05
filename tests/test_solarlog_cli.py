@@ -1,11 +1,10 @@
 """Tests for solarlog_cli."""
 
-from aiointercept import aiointercept
-from aiohttp import ClientSession
+import asyncio
 
 import pytest
 from aiohttp import ClientSession
-from aioresponses import aioresponses
+from aiointercept import CallbackResult, aiointercept
 from syrupy.assertion import SnapshotAssertion
 
 from solarlog_cli.solarlog_connector import SolarLogConnector
@@ -19,6 +18,16 @@ from solarlog_cli.solarlog_exceptions import (
 from . import load_fixture
 
 
+async def timeout_response(
+    _url: str,
+    **_kwargs: object,
+) -> CallbackResult:
+    """Delay the response so the client's request timeout is exercised."""
+    del _url, _kwargs
+    await asyncio.sleep(1.1)
+    return CallbackResult()
+
+
 @pytest.mark.parametrize(
     ("response_status", "return_value"),
     [
@@ -28,22 +37,39 @@ from . import load_fixture
 )
 async def test_connection(
     responses: aiointercept,
+<<<<<<< HEAD
     solarlog_connector: SolarLogConnector,
     response_status: str,
+=======
+    response_status: int,
+>>>>>>> 3972f61 (Migrate tests to aiointercept)
     return_value: bool,
 ) -> None:
     """Test connection."""
 
     responses.post(
+<<<<<<< HEAD
         "http://solarlog.com/getjp",
         status=response_status,
     )
 
+=======
+        "http://localhost/getjp",
+        status=response_status,
+    )
+
+    solarlog_connector = SolarLogConnector("http://localhost")
+
+>>>>>>> 3972f61 (Migrate tests to aiointercept)
     await solarlog_connector.client.close()
     solarlog_connector.client.session = None  # type: ignore [assignment]
     assert await solarlog_connector.test_connection() == return_value
 
+<<<<<<< HEAD
     assert solarlog_connector.host == "http://solarlog.com"
+=======
+    assert solarlog_connector.host == "http://localhost"
+>>>>>>> 3972f61 (Migrate tests to aiointercept)
 
     assert solarlog_connector.client.session is not None
     assert not solarlog_connector.client.session.closed
@@ -51,20 +77,38 @@ async def test_connection(
     assert solarlog_connector.client.session.closed
 
 
+<<<<<<< HEAD
 async def test_existing_session(responses: aiointercept) -> None:
+=======
+async def test_existing_session(
+    responses: aiointercept,
+) -> None:
+>>>>>>> 3972f61 (Migrate tests to aiointercept)
     """Test connection."""
 
     responses.post(
+<<<<<<< HEAD
         "http://solarlog.com/getjp",
+=======
+        "http://localhost/getjp",
+>>>>>>> 3972f61 (Migrate tests to aiointercept)
         status=200,
     )
 
     solarlog_connector = SolarLogConnector(
+<<<<<<< HEAD
         "http://solarlog.com", session=ClientSession())
 
     assert await solarlog_connector.test_connection()
 
     assert solarlog_connector.host == "http://solarlog.com"
+=======
+        "http://localhost", session=ClientSession())
+
+    assert await solarlog_connector.test_connection()
+
+    assert solarlog_connector.host == "http://localhost"
+>>>>>>> 3972f61 (Migrate tests to aiointercept)
 
     assert solarlog_connector.client.session is not None
     assert not solarlog_connector.client.session.closed
@@ -80,9 +124,14 @@ async def test_extended_data_available(
     solarlog_connector = SolarLogConnector(
         "http://solarlog.com", password="pwd")
 
+    solarlog_connector.client.request_timeout = 1
     responses.post(
         "http://solarlog.com/getjp",
+<<<<<<< HEAD
         exception=True,
+=======
+        callback=timeout_response,
+>>>>>>> 3972f61 (Migrate tests to aiointercept)
     )
     assert not await solarlog_connector.test_extended_data_available()
 
@@ -117,7 +166,7 @@ async def test_extended_data_available(
     )
     responses.post(
         "http://solarlog.com/login",
-        exception=SolarLogAuthenticationError('test'),
+        body="FAILED - Password was wrong",
     )
     solarlog_connector.client.password = "pwd"
     # type: ignore [call-overload]
@@ -389,11 +438,16 @@ async def test_update_data_exceptions(
     error: SolarLogError,
 ) -> None:
     """Test update data with exceptions."""
-    responses.post(
-        "http://solarlog.com/getjp",
-        timeout=request_timeout,
-        status=status,
-    )
+    if request_timeout:
+        responses.post(
+            "http://solarlog.com/getjp",
+            callback=timeout_response,
+        )
+    else:
+        responses.post(
+            "http://solarlog.com/getjp",
+            status=status,
+        )
 
     solarlog_connector = SolarLogConnector(
         "http://solarlog.com",
@@ -401,6 +455,7 @@ async def test_update_data_exceptions(
         "UTC",
         {0: True, 1: False, 2: False, 3: True},
     )
+    solarlog_connector.client.request_timeout = 1
     await solarlog_connector.client.close()
     solarlog_connector.client.session = None  # type: ignore [assignment]
 
