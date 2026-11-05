@@ -3,10 +3,10 @@
 {
 	"name": "Docker in Docker",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
+	"image": "mcr.microsoft.com/devcontainers/python:3-3.14-bookworm",
 
 	"features": {
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+		"ghcr.io/devcontainers/features/docker-in-docker:4.1.3": {
 			"moby": true,
 			"azureDnsAutoDetection": true,
 			"installDockerBuildx": true,
@@ -24,7 +24,7 @@
 		"ghcr.io/devcontainers-community/npm-features/prettier:1": {
 			"version": "latest"
 		},
-		"ghcr.io/hspaans/devcontainer-features/pytest:1": {
+		"ghcr.io/hspaans/devcontainer-features/pytest:2.0.0": {
 			"version": "latest",
 			"plugins": "pytest-testinfra"
 		}
