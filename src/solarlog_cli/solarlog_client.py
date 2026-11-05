@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import UTC, datetime, tzinfo
+from datetime import UTC, date, datetime, tzinfo
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -16,7 +16,7 @@ from .solarlog_exceptions import (
     SolarLogConnectionError,
     SolarLogUpdateError,
 )
-from .solarlog_models import EnergyData, SolarlogData
+from .solarlog_models import EnergyData, EventData, SolarlogData
 
 SOLARLOG_REQUEST_PAYLOAD = '{ "801": { "170": null } }'
 _LOGGER = logging.getLogger(__name__)
@@ -275,8 +275,26 @@ class Client:
 
         return None
 
-    async def get_device_list(self, timeout: float | None = None) -> dict[int, str]:
-        """Get list of all connected devices."""
+    async def get_firmware(self, timeout: float | None = None) -> tuple[str, date]:
+        """Get firmware data from Solar-Log."""
+
+        raw_data: dict = await self.parse_http_response(
+            await self.execute_http_request(
+                '{ "801": {"101" : None, "102" : None } }', timeout=timeout
+            )
+        )
+        fw_version: str = raw_data["801"]["101"]
+        fw_date: date = datetime.strptime(
+            raw_data["801"]["102"], "%d.%m.%Y").date()
+
+        return (fw_version, fw_date)
+
+    async def get_device_list(
+            self,
+            timeout: float | None = None
+        ) -> dict[int, tuple[str, dict, dict]]:
+        """Get list of all connected devices.
+        Return value is a dict with name, possible events and error codes per device."""
 
         # get list of all inverters connected to Solar-Log
         raw_data: dict = await self.parse_http_response(
@@ -284,19 +302,53 @@ class Client:
         )
         raw_data = raw_data["740"]
 
-        device_list: dict[int, str] = {}
+        device_list: dict[int, tuple[str, dict, dict]] = {}
 
         for key, value in raw_data.items():
             if value != "Err":
-                # get name of the inverter
-                raw_data = await self.parse_http_response(
-                    await self.execute_http_request(
-                        f"""{{ "141": {{ "{key}": {{ "119": null }} }} }}""", timeout=timeout
-                    )
+                # get name, events and error codes of the inverter
+                query = (
+                    f'{{ "141": {{ "{key}": {{ "119": null, "708": null, '
+                    f'"709": null }} }} }}'
                 )
-                device_list |= {int(key): raw_data["141"][key]["119"]}
+                raw_data = await self.parse_http_response(
+                    await self.execute_http_request(query, timeout=timeout)
+                )
+                device_list |= {int(key): (
+                        raw_data["141"][key]["119"],
+                        raw_data["141"][key]["708"],
+                        raw_data["141"][key]["709"],
+                    )
+                }
 
         return device_list
+
+    async def get_device_last_event(self, device: int, timeout: float | None = None) -> EventData:
+        """Get list of last event/error of a device."""
+
+        raw_data = await self.parse_http_response(
+            await self.execute_http_request(
+                f"""{{ "141": {{ "{device}": {{ "710": null }} }} }}""", timeout=timeout
+            )
+        )
+        print(raw_data)
+        events = raw_data["141"][str(device)]["710"]["0"]
+
+        return EventData(
+            start=datetime.fromtimestamp(events[0][0]),
+            end=datetime.fromtimestamp(events[0][1]),
+            event=int(events[0][3]),
+            error=int(events[0][4])
+        )
+
+    async def get_status_per_device(self, timeout: float | None = None) -> dict[int, str]:
+        """Get inverter status from Solar-Log"""
+
+        raw_data: dict = await self.parse_http_response(
+            await self.execute_http_request('{ "608": null }', timeout=timeout)
+        )
+        print(raw_data)
+        return raw_data["608"]
 
     async def close(self) -> None:
         """Close open client session."""

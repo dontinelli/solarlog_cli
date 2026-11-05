@@ -3,6 +3,7 @@
 import logging
 
 from aiohttp import ClientSession
+from datetime import date
 
 from .solarlog_client import Client
 from .solarlog_exceptions import (
@@ -159,26 +160,45 @@ class SolarLogConnector:
         devices = await self.client.get_device_list(timeout)
 
         self._device_list = {
-            key: InverterData(name=value,enabled=self.device(key).enabled)
+            key: InverterData(
+                name=value[0],
+                enabled=self.device(key).enabled,
+                errors=value[2],
+                events=value[1]
+                )
             for key, value in devices.items()
         }
         _LOGGER.debug("Device list updated: %s",self._device_list)
 
         return self._device_list
 
+    async def update_firmware_information(self, timeout: float | None = None) -> tuple[str, date]:
+        """Update firmware data (version and release date)."""
+
+        return await self.client.get_firmware(timeout)
+
     async def update_inverter_data(self, timeout: float | None = None) -> dict[int, InverterData]:
         """Update device specific data."""
 
-        raw_data = await self.client.get_power_per_inverter(timeout)
-        for key, value in raw_data.items():
+        raw_power_data = await self.client.get_power_per_inverter(timeout)
+        for key, value in raw_power_data.items():
             key = int(key)
             if self._device_list.get(key,InverterData).enabled:
                 self._device_list[key].current_power = float(value)
 
-        raw_data = await self.client.get_energy_per_inverter(timeout)
-        for key, value in raw_data.items():
+        raw_energy_data = await self.client.get_energy_per_inverter(timeout)
+        for key, value in raw_energy_data.items():
+            key = int(key)
             if self._device_list.get(key,InverterData).enabled:
                 self._device_list[key].consumption_year = float(value)
+
+        raw_status_data = await self.client.get_status_per_device(timeout)
+        for key, value in raw_status_data.items():
+            key = int(key)
+            if self._device_list.get(key,InverterData).enabled:
+                self._device_list[key].status = value
+
+                self._device_list[key].last_event = await self.client.get_device_last_event(key)
 
         _LOGGER.debug("Inverter data updated: %s",self._device_list)
 

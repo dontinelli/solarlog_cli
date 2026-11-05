@@ -1,0 +1,27 @@
+{
+    "141": {
+        "3":{
+            "708":{
+                "0":"OFF",
+                "1":"INIT",
+                "2":"IsoMeas",
+                "3":"GridCheck",
+                "4":"StartUp","5":" ",
+                "6":"FeedIn",
+                "7":"Throttled",
+                "8":"ExtSwitchOff",
+                "9":"Update",
+                "10":"Standby",
+                "11":"GridSync",
+                "12":"GridPreCheck",
+                "13":"GridSwitchOff",
+                "14":"Overheating",
+                "15":"Shutdown",
+                "16":"ImproperDcVoltage",
+                "17":"ESB",
+                "18":"Undefined",
+                "19":""
+            }
+        }
+    }
+}
