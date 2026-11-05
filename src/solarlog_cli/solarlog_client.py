@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
-from datetime import datetime
+from datetime import date, datetime
 import json
 import logging
 from datetime import UTC, datetime, tzinfo
