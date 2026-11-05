@@ -500,7 +500,7 @@ async def test_update_data_with_data_exceptions(
 
     data = await solarlog_connector.update_data()
 
-    assert data.usage == None
+    assert data.usage is None
     assert data.power_available == 0
 
     await solarlog_connector.client.close()
