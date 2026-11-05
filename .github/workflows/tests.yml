@@ -30,7 +30,7 @@ jobs:
       - name: 🏗 Install dependencies
         run: python3 -m pip install -r requirements.txt
       - name: 🏗 Install pytest
-        run: python3 -m pip install pytest pytest-cov pytest-aio
+        run: python3 -m pip install pytest pytest-cov pytest-asyncio
       - name: 🚀 Run pytest
         run: pytest --cov src tests
       - name: ⬆️ Upload coverage artifact
