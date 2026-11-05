@@ -66,7 +66,7 @@ class Client:
         return response.status == 200
 
     async def login(self) -> bool:
-        """Test the connection to Solar-Log."""
+        """Login to Solar-Log."""
 
         if self.password == "":
             return False
