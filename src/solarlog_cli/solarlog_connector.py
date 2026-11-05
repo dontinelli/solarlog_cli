@@ -129,7 +129,7 @@ class SolarLogConnector:
             data.usage = data.consumption_ac / data.power_ac * 100
             data.power_available = data.power_ac - data.consumption_ac
         else:
-            data.usage = 0.0
+            data.usage = None
             data.power_available = 0.0
         if data.total_power != 0:
             data.capacity = data.power_dc / data.total_power * 100
