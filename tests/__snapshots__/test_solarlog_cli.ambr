@@ -16,8 +16,8 @@
     'consumption_year': 4218251,
     'consumption_yesterday': 94350,
     'efficiency': 96.65663657639585,
-    'firmware_date': None,
-    'firmware_version': None,
+    'firmware_release_date': datetime.date(2024, 7, 16),
+    'firmware_version': 16974156,
     'inverter_data': dict({
       0: dict({
         'consumption_year': 4227027.0,

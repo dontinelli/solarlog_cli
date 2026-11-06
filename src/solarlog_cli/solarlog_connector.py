@@ -25,6 +25,7 @@ class SolarLogConnector:
     def __init__(
         self,
         host: str,
+        auto_fw_update: bool = False,
         extended_data: bool = False,
         tz: str = "",
         device_enabled: dict[int, bool] | None = None,
@@ -32,6 +33,7 @@ class SolarLogConnector:
         session: ClientSession | None = None,
     ):
         self.client = Client(host, session, password, tz)
+        self.auto_fw_update: bool = auto_fw_update
         self.extended_data: bool = extended_data
 
         self._device_list: dict[int, InverterData] = {}
@@ -95,6 +97,9 @@ class SolarLogConnector:
                 data.inverter_data = await self.update_inverter_data()
 
             data.battery_data = await self.update_battery_data()
+
+            if self.auto_fw_update:
+                data.firmware_version, data.firmware_release_date = await self.update_firmware_information()
 
             _LOGGER.debug("Extended data updated: %s",data)
 

@@ -78,7 +78,7 @@ class SolarlogData(DataClassDictMixin):
 
     #extended data
     battery_data: BatteryData | None = None
-    firmware_date: date | None = None
+    firmware_release_date: date | None = None
     firmware_version: str | None = None
     inverter_data: dict[int, InverterData] = field(default_factory=dict)
     production_year: float | None = None
