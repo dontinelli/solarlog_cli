@@ -63,7 +63,7 @@ async def test_connection(
 async def test_existing_session(
     responses: aiointercept,
 ) -> None:
-    """Test connection."""
+    """Test connection with existing session."""
     responses.post(
         "http://localhost/getjp",
         status=200,
@@ -252,14 +252,35 @@ async def test_update_data(
     )
     responses.post(
         "http://solarlog.com/getjp",
+        body=load_fixture("device_status.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_1.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_2.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_4.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
         body=load_fixture("battery_data.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("firmware_data.json"),
     )
 
     solarlog_connector = SolarLogConnector(
-        "http://solarlog.com",
-        True,
-        "UTC",
-        {0: True, 1: True, 2: False, 3: True},
+        host="http://solarlog.com",
+        auto_fw_update=True,
+        extended_data=True,
+        tz="UTC",
+        device_enabled={0: True, 1: True, 2: False, 3: True},
     )
 
     data = await solarlog_connector.update_data()
@@ -273,7 +294,7 @@ async def test_update_data(
 async def test_update_data_without_battery(
     responses: aiointercept,
 ) -> None:
-    """Test update data."""
+    """Test update data without battery."""
     responses.post(
         "http://solarlog.com/getjp",
         body=load_fixture("basic_data.json"),
@@ -292,19 +313,43 @@ async def test_update_data_without_battery(
     )
     responses.post(
         "http://solarlog.com/getjp",
+        body=load_fixture("device_status.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_1.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_2.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("device_event_list_4.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
         body=load_fixture("battery_data_without_battery.json"),
+    )
+    responses.post(
+        "http://solarlog.com/getjp",
+        body=load_fixture("firmware_data.json"),
     )
 
     solarlog_connector = SolarLogConnector(
-        "http://solarlog.com",
-        True,
-        "UTC",
-        {0: True, 1: True, 2: False, 3: True},
+        host="http://solarlog.com",
+        extended_data=True,
+        tz="UTC",
+        device_enabled={0: True, 1: True, 2: False, 3: True},
     )
 
     data = await solarlog_connector.update_data()
 
     assert data.battery_data is None
+
+    firmware = await solarlog_connector.update_firmware_information()
+
+    assert firmware[0] == 16974156
 
     await solarlog_connector.client.close()
     assert solarlog_connector.client.session.closed
@@ -325,10 +370,10 @@ async def test_update_energy_data(
     )
 
     solarlog_connector = SolarLogConnector(
-        "http://solarlog.com",
-        True,
-        "UTC",
-        {0: True, 1: True, 2: False, 3: True},
+        host="http://solarlog.com",
+        extended_data=True,
+        tz="UTC",
+        device_enabled={0: True, 1: True, 2: False, 3: True},
     )
 
     data = await solarlog_connector.update_energy_data()
@@ -368,10 +413,10 @@ async def test_update_data_exceptions(
         )
 
     solarlog_connector = SolarLogConnector(
-        "http://solarlog.com",
-        True,
-        "UTC",
-        {0: True, 1: False, 2: False, 3: True},
+        host="http://solarlog.com",
+        extended_data=True,
+        tz="UTC",
+        device_enabled={0: True, 1: False, 2: False, 3: True},
     )
     solarlog_connector.client.request_timeout = 1
     await solarlog_connector.client.close()
@@ -453,10 +498,10 @@ async def test_update_device_list(
     )
 
     solarlog_connector = SolarLogConnector(
-        "http://solarlog.com",
-        True,
-        "UTC",
-        {0: True, 1: False, 2: False, 3: True},
+        host="http://solarlog.com",
+        extended_data=True,
+        tz="UTC",
+        device_enabled={0: True, 1: False, 2: False, 3: True},
     )
 
     await solarlog_connector.update_device_list()

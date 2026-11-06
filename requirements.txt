@@ -1,4 +1,4 @@
-aiohttp>=3.13.3
+aiohttp>=3.14.0
 aiointercept[pytest-asyncio] == 1.0.0
 bcrypt >= 4.3.0
 mashumaro>=3.13
