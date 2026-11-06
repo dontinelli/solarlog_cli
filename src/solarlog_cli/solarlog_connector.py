@@ -99,7 +99,10 @@ class SolarLogConnector:
             data.battery_data = await self.update_battery_data()
 
             if self.auto_fw_update:
-                data.firmware_version, data.firmware_release_date = await self.update_firmware_information()
+                (
+                    data.firmware_version,
+                    data.firmware_release_date,
+                ) = await self.update_firmware_information()
 
             _LOGGER.debug("Extended data updated: %s",data)
 
