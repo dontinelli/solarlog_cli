@@ -38,7 +38,7 @@
       }),
       1: dict({
         'consumption_year': 1920650.0,
-        'current_power': None,
+        'current_power': 0.0,
         'enabled': True,
         'errors': dict({
         }),

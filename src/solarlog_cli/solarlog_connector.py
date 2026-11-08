@@ -240,8 +240,7 @@ class SolarLogConnector:
     def device_enabled(self, device_id: int | None = None) -> bool | dict[int, bool]:
         """Get if device is enabled (if id is provided) or list of all devices."""
         if device_id is None:
-            print("no device_id")
-            print(self._device_list)
+            _LOGGER.debug("No device_id set: %s",self._device_list)
             return {key: value.enabled for key, value in self._device_list.items()}
         return self._device_list[device_id].enabled
 

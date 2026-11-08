@@ -239,8 +239,7 @@ class Client:
             await self.execute_http_request('{ "782": null }', timeout=timeout)
         )
 
-        data = {int(key): val for key,
-                val in raw_data["782"].items() if val != "0"}
+        data = {int(key): float(val) for key, val in raw_data["782"].items()}
 
         return data
 
@@ -255,8 +254,7 @@ class Client:
         data: dict[int, float] = {}
 
         for item in data_list:
-            if item != 0:
-                data |= {int(data_list.index(item)): item}
+            data |= {int(data_list.index(item)): float(item)}
 
         return data
 
@@ -331,7 +329,6 @@ class Client:
                 f"""{{ "141": {{ "{device}": {{ "710": null }} }} }}""", timeout=timeout
             )
         )
-        print(raw_data)
         events = raw_data["141"][str(device)]["710"]["0"]
 
         return EventData(
@@ -347,7 +344,6 @@ class Client:
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "608": null }', timeout=timeout)
         )
-        print(raw_data)
         return raw_data["608"]
 
     async def close(self) -> None:
