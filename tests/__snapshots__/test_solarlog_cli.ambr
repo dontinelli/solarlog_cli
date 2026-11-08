@@ -66,7 +66,7 @@
         'status': None,
       }),
       3: dict({
-        'consumption_year': None,
+        'consumption_year': 0.0,
         'current_power': 2816.0,
         'enabled': True,
         'errors': dict({

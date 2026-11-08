@@ -249,12 +249,8 @@ class Client:
         raw_data: dict = await self.parse_http_response(
             await self.execute_http_request('{ "854": null }', timeout=timeout)
         )
-        data_list = raw_data["854"][-1][-1]
 
-        data: dict[int, float] = {}
-
-        for item in data_list:
-            data |= {int(data_list.index(item)): float(item)}
+        data = {int(key): float(val) for key, val in enumerate(raw_data["854"][-1][-1])}
 
         return data
 
